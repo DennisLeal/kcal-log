@@ -13,7 +13,7 @@
     {
       "binding": "PAYMENTS_DB",
       "database_name": "kcal-log-payments",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "b5bc9ef8-408d-4776-9f94-bac33451f105",
       "migrations_dir": "migrations"
     }
   ]
