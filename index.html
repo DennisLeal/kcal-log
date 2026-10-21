@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#1E2622">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Kcal Log">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
@@ -984,6 +984,14 @@ select:focus {
 #trialLock button:disabled{opacity:.55;cursor:not-allowed}
 .checkout-status{margin:12px 0 0;color:#8B3528;font-size:13px;line-height:1.45}
 .checkout-status[hidden]{display:none}
+.install-card{background:#E7EEE3;border:1px solid #C9D6C2;border-radius:12px;padding:12px;margin:0 0 12px}
+.install-card[hidden],.install-card button[hidden]{display:none}
+.install-card h2{font-size:14px;margin:0 0 5px}
+.install-card p{font-size:12px;line-height:1.5;margin:0;color:#4B5945}
+.install-card button{margin-top:10px;background:#2B2620;color:#FAF7F2;border:0;border-radius:8px;padding:9px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.install-card .install-dismiss{float:right;background:transparent;color:#4B5945;padding:0;margin:0;font-size:18px}
+.install-status{margin-top:8px!important}
+.install-status[hidden]{display:none}
 
 </style>
 </head>
@@ -991,6 +999,13 @@ select:focus {
 <div class="app">
 
 <div id="trialBanner"><span id="trialText">Trial</span><strong>₱79 Lifetime</strong></div>
+<section id="installCard" class="install-card" aria-labelledby="installTitle" hidden>
+  <button id="dismissInstallBtn" class="install-dismiss" type="button" aria-label="Dismiss install instructions">×</button>
+  <h2 id="installTitle">Keep Kcal Log on your Home Screen</h2>
+  <p id="installHelp"></p>
+  <button id="installBtn" type="button" hidden>Install Kcal Log</button>
+  <p id="installStatus" class="install-status" role="status" aria-live="polite" hidden></p>
+</section>
 <div id="trialLock"><div class="card"><h2>Your Trial Has Ended</h2><p>Pay one time and get access to the app for a lifetime.</p><button id="buyLifetimeBtn">Buy & Unlock Lifetime Access</button><p id="checkoutStatus" class="checkout-status" role="status" aria-live="polite" hidden></p></div></div>
 
   <div class="eyebrow">Food log</div>
@@ -2417,6 +2432,66 @@ configureLifetimeCheckout();
 trialInit();
 
 loadData();
+})();
+</script>
+<script>
+(() => {
+  const card = document.getElementById('installCard');
+  const help = document.getElementById('installHelp');
+  const installButton = document.getElementById('installBtn');
+  const status = document.getElementById('installStatus');
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+    navigator.standalone === true;
+  const userAgent = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(userAgent);
+  let installPrompt = null;
+
+  if (isStandalone || (!isIOS && !isAndroid)) return;
+
+  card.hidden = false;
+
+  if (isIOS) {
+    const isSafari = /Safari/i.test(userAgent) && !/CriOS|FxiOS|EdgiOS/i.test(userAgent);
+    help.textContent = isSafari
+      ? 'In Safari, tap Share, then Add to Home Screen. Your log stays on this device; adding the app does not create a backup.'
+      : 'For the best iPhone install, open this page in Safari, tap Share, then Add to Home Screen. Your log stays on this device; adding the app does not create a backup.';
+  } else {
+    help.textContent = 'Install from your browser menu using “Install app” or “Add to Home screen.” Your log stays on this device; adding the app does not create a backup.';
+    installButton.hidden = false;
+  }
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    installPrompt = event;
+    installButton.hidden = false;
+  });
+
+  installButton.addEventListener('click', async () => {
+    if (!installPrompt) {
+      status.hidden = false;
+      status.textContent = 'Open your browser menu and choose “Install app” or “Add to Home screen.”';
+      return;
+    }
+
+    installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    installPrompt = null;
+    status.hidden = false;
+    status.textContent = choice.outcome === 'accepted'
+      ? 'Kcal Log is being installed.'
+      : 'Installation was cancelled. You can install later from the browser menu.';
+  });
+
+  document.getElementById('dismissInstallBtn').addEventListener('click', () => {
+    card.hidden = true;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    card.hidden = true;
+    installPrompt = null;
+  });
 })();
 </script>
 <!-- =======================================================

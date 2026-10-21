@@ -1,4 +1,5 @@
-const CACHE_NAME = 'kcal-log-v1';
+const CACHE_PREFIX = 'kcal-log-';
+const CACHE_NAME = 'kcal-log-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -7,47 +8,54 @@ const ASSETS_TO_CACHE = [
   './icon-512.png'
 ];
 
-// Install Event: Cache essential assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(ASSETS_TO_CACHE))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Activate Event: Cleanup stale caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
+          if (cache.startsWith(CACHE_PREFIX) && cache !== CACHE_NAME) {
             return caches.delete(cache);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch Event: Network-first approach with cache fallback
 self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  const url = new URL(request.url);
+
+  if (request.method !== 'GET' || url.origin !== self.location.origin) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+    fetch(request)
+      .then(async (response) => {
+        if (response.ok && response.type === 'basic') {
+          try {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, response.clone());
+          } catch (error) {
+            console.error('Kcal Log cache update failed:', error);
+          }
         }
         return response;
       })
-      .catch(() => {
-        return caches.match(event.request);
+      .catch(async () => {
+        const cache = await caches.open(CACHE_NAME);
+        return (await cache.match(request)) ||
+          (request.mode === 'navigate' ? cache.match('./index.html') : undefined) ||
+          Response.error();
       })
   );
 });
