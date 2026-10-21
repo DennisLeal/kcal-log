@@ -978,10 +978,14 @@ select:focus {
 
 /* === Trial Mode Overlay === */
 #trialBanner{background:#FFF4E5;border:1px solid #F3D19C;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+#trialBanner .trial-buy-button{background:transparent;border:0;padding:4px 0 4px 12px;color:#2563EB;font:inherit;font-weight:800;cursor:pointer}
 #trialLock{position:fixed;inset:0;background:rgba(30,38,34,.94);display:none;align-items:center;justify-content:center;padding:20px;z-index:99999}
 #trialLock .card{background:#FAF7F2;color:#2B2620;border-radius:20px;padding:24px;max-width:420px;width:100%;text-align:center}
 #trialLock button{background:#2563EB;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-weight:700;cursor:pointer}
+#trialLock .trial-backup-btn{margin-top:10px;background:transparent;color:#2B2620;border:1px solid #DDD5C4}
 #trialLock button:disabled{opacity:.55;cursor:not-allowed}
+#trialLock input{box-sizing:border-box;width:100%;margin:4px 0 10px;padding:12px;border:1px solid #DDD5C4;border-radius:10px;font:inherit}
+#trialLock label{display:block;text-align:left;font-size:12px;font-weight:700}
 .checkout-status{margin:12px 0 0;color:#8B3528;font-size:13px;line-height:1.45}
 .checkout-status[hidden]{display:none}
 .install-card{background:#E7EEE3;border:1px solid #C9D6C2;border-radius:12px;padding:12px;margin:0 0 12px}
@@ -992,13 +996,20 @@ select:focus {
 .install-card .install-dismiss{float:right;background:transparent;color:#4B5945;padding:0;margin:0;font-size:18px}
 .install-status{margin-top:8px!important}
 .install-status[hidden]{display:none}
+.backup-card{margin-top:16px}
+.backup-card .summary-note{margin:0 0 12px}
+.backup-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.backup-actions button{background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:10px;padding:11px 8px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.backup-actions button:active{transform:scale(.98)}
+.backup-status{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--ink-soft)}
+.backup-status[hidden]{display:none}
 
 </style>
 </head>
 <body>
 <div class="app">
 
-<div id="trialBanner"><span id="trialText">Trial</span><strong>₱79 Lifetime</strong></div>
+<div id="trialBanner"><span id="trialText">Trial</span><button id="buyFromTrialBtn" class="trial-buy-button" type="button">Get lifetime access · ₱79</button></div>
 <section id="installCard" class="install-card" aria-labelledby="installTitle" hidden>
   <button id="dismissInstallBtn" class="install-dismiss" type="button" aria-label="Dismiss install instructions">×</button>
   <h2 id="installTitle">Keep Kcal Log on your Home Screen</h2>
@@ -1006,7 +1017,7 @@ select:focus {
   <button id="installBtn" type="button" hidden>Install Kcal Log</button>
   <p id="installStatus" class="install-status" role="status" aria-live="polite" hidden></p>
 </section>
-<div id="trialLock"><div class="card"><h2>Your Trial Has Ended</h2><p>Pay one time and get access to the app for a lifetime.</p><button id="buyLifetimeBtn">Buy & Unlock Lifetime Access</button><p id="checkoutStatus" class="checkout-status" role="status" aria-live="polite" hidden></p></div></div>
+<div id="trialLock"><div class="card"><button id="closePurchaseBtn" class="trial-backup-btn" type="button" hidden>Back to my log</button><h2 id="purchaseTitle">Lifetime access</h2><p>Pay once (₱79) for lifetime access. Your trial entries stay saved on this device.</p><p>Use an email address you can access. It will be used to recover your purchase, not your food logs.</p><label for="purchaseEmail">Purchase or recovery email</label><input id="purchaseEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com"><p><a href="./privacy.html">Read the privacy notice</a></p><button id="buyLifetimeBtn" type="button">Continue to secure checkout</button><button id="sendAccessCodeBtn" class="trial-backup-btn" type="button">Restore lifetime access by email</button><label for="accessCode">One-time email code</label><input id="accessCode" type="text" inputmode="text" autocomplete="one-time-code" maxlength="24" placeholder="24-character code"><button id="redeemAccessCodeBtn" type="button">Unlock lifetime access</button><button id="trialBackupBtn" class="trial-backup-btn" type="button">Download a backup of my trial data</button><p id="checkoutStatus" class="checkout-status" role="status" aria-live="polite" hidden></p></div></div>
 
   <div class="eyebrow">Food log</div>
   <h1>Kcal Tracker</h1>
@@ -1233,6 +1244,18 @@ select:focus {
         <button class="use-goal-btn" id="useGoalBtn">Set as my daily goal in Log</button>
       </div>
     </div>
+    <section class="add-card backup-card" aria-labelledby="backupTitle">
+      <div class="add-title" id="backupTitle">Back up your data</div>
+      <div class="summary-note">
+        Download your food log, daily goal, and profile as a JSON file. Kcal Log does not upload the backup; keep the file somewhere safe. Restoring merges entries and keeps duplicates unchanged, while the backup's goal and profile replace the current ones. Buying lifetime access will not delete your trial entries.
+      </div>
+      <div class="backup-actions">
+        <button type="button" id="exportBackupBtn">Download backup</button>
+        <button type="button" id="importBackupBtn">Restore backup</button>
+      </div>
+      <input type="file" id="backupFileInput" accept="application/json,.json" hidden>
+      <p id="backupStatus" class="backup-status" role="status" aria-live="polite" hidden></p>
+    </section>
   </div>
   <!-- =====================================================
        FOODS VIEW (Philippine food calorie reference)
@@ -1539,6 +1562,196 @@ select:focus {
   function saveEntries() {
     saveWithRetry(STORAGE_KEY, JSON.stringify(allEntries));
   }
+  const BACKUP_SCHEMA = 'kcal-log-backup';
+  const BACKUP_VERSION = 1;
+  const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
+  const backupStatus = document.getElementById('backupStatus');
+  function setBackupStatus(message, isError = false) {
+    backupStatus.hidden = false;
+    backupStatus.textContent = message;
+    backupStatus.style.color = isError ? 'var(--rust)' : 'var(--ink-soft)';
+  }
+  function createBackup() {
+    return {
+      schema: BACKUP_SCHEMA,
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      entries: allEntries,
+      dailyGoal,
+      profile
+    };
+  }
+  document.getElementById('exportBackupBtn').addEventListener('click', () => {
+    try {
+      const backup = JSON.stringify(createBackup(), null, 2);
+      const url = URL.createObjectURL(new Blob([backup], { type: 'application/json' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'kcal-log-backup-' + todayStr() + '.json';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setBackupStatus('Backup downloaded. Store this file somewhere safe; it contains your food log and profile details.');
+    } catch (error) {
+      console.error('Backup export failed:', error);
+      setBackupStatus('Could not create a backup. Your current data has not been changed.', true);
+    }
+  });
+  document.getElementById('trialBackupBtn').addEventListener('click', () => {
+    document.getElementById('exportBackupBtn').click();
+  });
+  const backupFileInput = document.getElementById('backupFileInput');
+  document.getElementById('importBackupBtn').addEventListener('click', () => {
+    backupFileInput.click();
+  });
+  function isRecord(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+  }
+  function isValidDateKey(value) {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(value + 'T00:00:00Z');
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  }
+  function validateBackup(data) {
+    if (!isRecord(data) || data.schema !== BACKUP_SCHEMA || data.version !== BACKUP_VERSION) {
+      throw new Error('This is not a supported Kcal Log backup.');
+    }
+    if (!isRecord(data.entries)) {
+      throw new Error('The backup does not contain a valid food log.');
+    }
+    for (const [date, entries] of Object.entries(data.entries)) {
+      if (!isValidDateKey(date) || !Array.isArray(entries)) {
+        throw new Error('The backup contains an invalid entry date.');
+      }
+      for (const entry of entries) {
+        if (!isRecord(entry) ||
+          typeof entry.id !== 'string' || !entry.id || entry.id.length > 200 ||
+          typeof entry.food !== 'string' || !entry.food.trim() || entry.food.length > 500 ||
+          !Number.isInteger(entry.hour) || entry.hour < 1 || entry.hour > 12 ||
+          !Number.isInteger(entry.min) || entry.min < 0 || entry.min > 59 ||
+          !['AM', 'PM'].includes(entry.ampm) ||
+          !Number.isFinite(entry.kcal) || entry.kcal < 0 ||
+          (entry.notes !== undefined && (typeof entry.notes !== 'string' || entry.notes.length > 2000))) {
+          throw new Error('The backup contains an invalid food entry. Nothing was restored.');
+        }
+      }
+    }
+    if (data.dailyGoal !== null &&
+      (!Number.isFinite(data.dailyGoal) || data.dailyGoal < 0)) {
+      throw new Error('The backup contains an invalid daily goal.');
+    }
+    if (data.profile !== null) {
+      const value = data.profile;
+      const result = value?.lastResult;
+      if (!isRecord(value) ||
+        typeof value.name !== 'string' ||
+        !['M', 'F'].includes(value.sex) ||
+        !Number.isFinite(value.age) || value.age <= 0 ||
+        !Number.isFinite(value.weight) || value.weight <= 0 ||
+        !Number.isFinite(value.height) || value.height <= 0 ||
+        !['sedentary', 'light', 'moderate', 'active', 'veryactive'].includes(value.activity) ||
+        !['maintain', 'mildloss', 'loss', 'extremeloss', 'mildgain', 'gain'].includes(value.goal) ||
+        !isRecord(result) ||
+        !Number.isFinite(result.bmr) ||
+        !Number.isFinite(result.tdee) ||
+        !Number.isFinite(result.target)) {
+        throw new Error('The backup contains an invalid profile.');
+      }
+    }
+    return data;
+  }
+  function mergeBackupEntries(existingEntries, importedEntries) {
+    const merged = {};
+    const ids = new Set();
+    for (const [date, entries] of Object.entries(existingEntries)) {
+      merged[date] = Array.isArray(entries) ? entries.slice() : [];
+      for (const entry of merged[date]) {
+        if (entry && typeof entry.id === 'string') ids.add(entry.id);
+      }
+    }
+    let added = 0;
+    let skipped = 0;
+    for (const [date, entries] of Object.entries(importedEntries)) {
+      const current = merged[date] || [];
+      for (const entry of entries) {
+        if (ids.has(entry.id)) {
+          skipped++;
+          continue;
+        }
+        current.push(entry);
+        ids.add(entry.id);
+        added++;
+      }
+      if (current.length) merged[date] = current;
+    }
+    return { entries: merged, added, skipped };
+  }
+  function persistRestoredData(nextEntries, nextGoal, nextProfile) {
+    const keys = [STORAGE_KEY, GOAL_KEY, PROFILE_KEY];
+    const previous = keys.map(key => localStorage.getItem(key));
+    const next = [JSON.stringify(nextEntries), JSON.stringify(nextGoal), JSON.stringify(nextProfile)];
+    try {
+      keys.forEach((key, index) => localStorage.setItem(key, next[index]));
+    } catch (error) {
+      let rollbackFailed = false;
+      keys.forEach((key, index) => {
+        try {
+          if (previous[index] === null) localStorage.removeItem(key);
+          else localStorage.setItem(key, previous[index]);
+        } catch (restoreError) {
+          rollbackFailed = true;
+          console.error('Could not roll back partially restored data:', restoreError);
+        }
+      });
+      throw new Error(rollbackFailed
+        ? 'Restore could not be saved completely. Your current data is still loaded; download a backup before leaving this page.'
+        : 'Browser storage is unavailable or full. Your existing data was kept; the backup was not applied.');
+    }
+  }
+  function clearProfileForm() {
+    document.getElementById('profName').value = '';
+    document.getElementById('profAge').value = '';
+    document.getElementById('profWeight').value = '';
+    document.getElementById('profHeight').value = '';
+    document.getElementById('profActivity').value = 'moderate';
+    document.getElementById('profGoal').value = 'loss';
+    profSexM.click();
+    document.getElementById('profileResults').style.display = 'none';
+  }
+  backupFileInput.addEventListener('change', async () => {
+    const file = backupFileInput.files?.[0];
+    backupFileInput.value = '';
+    if (!file) return;
+    if (file.size > MAX_BACKUP_BYTES) {
+      setBackupStatus('That backup is too large to restore (maximum 5 MB). Your current data is unchanged.', true);
+      return;
+    }
+    try {
+      const backup = validateBackup(JSON.parse(await file.text()));
+      const merged = mergeBackupEntries(allEntries, backup.entries);
+      const nextGoal = backup.dailyGoal;
+      const nextProfile = backup.profile;
+      persistRestoredData(merged.entries, nextGoal, nextProfile);
+      allEntries = merged.entries;
+      dailyGoal = nextGoal;
+      profile = nextProfile;
+      if (profile) applyProfileToForm();
+      else clearProfileForm();
+      render();
+      if (summaryView.style.display !== 'none') renderSummary();
+      setBackupStatus(
+        'Restore complete: ' + merged.added + ' entries added; ' + merged.skipped +
+        ' duplicate entries kept unchanged. Your saved goal and profile were restored.'
+      );
+    } catch (error) {
+      console.error('Backup restore failed:', error);
+      const message = error instanceof SyntaxError
+        ? 'That file is not valid JSON. Your current data is unchanged.'
+        : error instanceof Error
+          ? error.message
+          : 'Could not restore that backup. Your current data is unchanged.';
+      setBackupStatus(message, true);
+    }
+  });
   function saveWithRetry(key, value) {
     try {
       localStorage.setItem(key, value);
@@ -2397,7 +2610,52 @@ const TRIAL_DAYS=7;
 // Version the trial key once to give existing testers a fresh seven-day period.
 // Their calorie entries and other app data are stored under separate keys and remain intact.
 const TRIAL_START_KEY='kcal_trial_start_date_v2';
-function trialInit(){
+const LIFETIME_ACCESS_KEY='kcal-lifetime-access-v1';
+const ACCESS_API_BASE_URL='';
+function setCheckoutStatus(message){
+ const status=document.getElementById('checkoutStatus');
+ status.textContent=message;
+ status.hidden=false;
+}
+function unlockLifetimeAccess(){
+ const banner=document.getElementById('trialText');
+ if(banner) banner.textContent='Lifetime access';
+ document.getElementById('trialLock').style.display='none';
+}
+function openPurchasePanel(forceExpired=false){
+ const install=Number(localStorage.getItem(TRIAL_START_KEY));
+ const trialExpired=forceExpired||(Number.isFinite(install)&&install>0&&Date.now()-install>=TRIAL_DAYS*86400000);
+ document.getElementById('purchaseTitle').textContent=trialExpired?'Your trial has ended':'Get lifetime access';
+ document.getElementById('closePurchaseBtn').hidden=trialExpired;
+ document.getElementById('trialLock').style.display='flex';
+}
+async function verifySavedAccess(token){
+ if(!ACCESS_API_BASE_URL) return true;
+ let apiUrl;
+ try{apiUrl=new URL(ACCESS_API_BASE_URL);}
+ catch(_){return true;}
+ if(apiUrl.protocol!=='https:') return true;
+ try{
+   const response=await fetch(`${apiUrl.origin}/api/access/status`,{
+     headers:{Authorization:`Bearer ${token}`},
+     signal:AbortSignal.timeout(5000)
+   });
+   if(!response.ok) throw new Error('Could not verify access right now.');
+   const result=await response.json();
+   if(result.active) return true;
+   localStorage.removeItem(LIFETIME_ACCESS_KEY);
+   return false;
+ }catch(error){
+   // A previously redeemed token remains usable offline; server verification resumes online.
+   return true;
+ }
+}
+async function trialInit(){
+ const savedToken=localStorage.getItem(LIFETIME_ACCESS_KEY);
+ if(savedToken&&await verifySavedAccess(savedToken)){
+   unlockLifetimeAccess();
+   return;
+ }
  let install=Number(localStorage.getItem(TRIAL_START_KEY));
  if(!Number.isFinite(install)||install<=0){
    install=Date.now();
@@ -2406,27 +2664,114 @@ function trialInit(){
  const remaining=Math.ceil((TRIAL_DAYS*86400000-(Date.now()-install))/86400000);
  const banner=document.getElementById('trialText');
  if(banner) banner.textContent=remaining>0?`Trial: ${remaining} day${remaining===1?'':'s'} left`:'Trial expired';
- if(remaining<=0){document.getElementById('trialLock').style.display='flex';}
+ if(remaining<=0) openPurchasePanel(true);
+ else document.getElementById('closePurchaseBtn').hidden=false;
 }
-const LIFETIME_CHECKOUT_URL = 'https://pm.link/org-6z51H3v3b6TE6rktHCkdcMBC/99KO8RK'; // PayMongo checkout URL supplied by the owner.
-function configureLifetimeCheckout() {
+async function postAccessRequest(path,body){
+ let apiUrl;
+ try{apiUrl=new URL(ACCESS_API_BASE_URL);}
+ catch(_){throw new Error('Secure checkout and email recovery are not configured yet.');}
+ if(apiUrl.protocol!=='https:') throw new Error('The payment service must use HTTPS.');
+ const response=await fetch(`${apiUrl.origin}${path}`,{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify(body)
+ });
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok) throw new Error(result.error||'The request could not be completed.');
+ return result;
+}
+function configureLifetimeCheckout(){
+  const trialBuyButton=document.getElementById('buyFromTrialBtn');
+  const closeButton=document.getElementById('closePurchaseBtn');
   const buyButton = document.getElementById('buyLifetimeBtn');
-  const status = document.getElementById('checkoutStatus');
-  let checkoutUrl = null;
-  try {
-    checkoutUrl = new URL(LIFETIME_CHECKOUT_URL.trim());
-  } catch (_) {}
-  const isPlaceholder = !checkoutUrl || checkoutUrl.protocol !== 'https:' ||
-    /YOUR-CHECKOUT-URL|REPLACE_ME|example\.com/i.test(checkoutUrl.hostname);
-  if (isPlaceholder) {
+  const sendCodeButton=document.getElementById('sendAccessCodeBtn');
+  const redeemButton=document.getElementById('redeemAccessCodeBtn');
+  const emailInput=document.getElementById('purchaseEmail');
+  const codeInput=document.getElementById('accessCode');
+  trialBuyButton.addEventListener('click',()=>openPurchasePanel(false));
+  closeButton.addEventListener('click',()=>document.getElementById('trialLock').style.display='none');
+  if(!ACCESS_API_BASE_URL){
     buyButton.disabled = true;
-    status.hidden = false;
-    status.textContent = 'Lifetime checkout is not available yet. Please check back later.';
-    return;
+    sendCodeButton.disabled=true;
+    redeemButton.disabled=true;
+    setCheckoutStatus('Secure checkout and email recovery will be available after the payment service is configured.');
+  }else{
+    let apiUrl;
+    try{apiUrl=new URL(ACCESS_API_BASE_URL);}
+    catch(_){apiUrl=null;}
+    if(!apiUrl||apiUrl.protocol!=='https:'){
+      buyButton.disabled=true;
+      sendCodeButton.disabled=true;
+      redeemButton.disabled=true;
+      setCheckoutStatus('The payment service is not configured with a secure HTTPS address.');
+    }
   }
-  buyButton.addEventListener('click', () => {
-    window.open(checkoutUrl.href, '_blank', 'noopener,noreferrer');
+  buyButton.addEventListener('click',async()=>{
+    if(!emailInput.reportValidity()) return;
+    buyButton.disabled=true;
+    try{
+      const result=await postAccessRequest('/api/checkout',{email:emailInput.value.trim()});
+      sessionStorage.setItem('kcal-lifetime-purchase-email',emailInput.value.trim());
+      window.location.assign(result.checkoutUrl);
+    }catch(error){
+      setCheckoutStatus(error.message);
+      buyButton.disabled=false;
+    }
   });
+  sendCodeButton.addEventListener('click',async()=>{
+    if(!emailInput.reportValidity()) return;
+    sendCodeButton.disabled=true;
+    try{
+      const orderId=new URLSearchParams(window.location.search).get('order');
+      await postAccessRequest('/api/access/send-code',{
+        email:emailInput.value.trim(),
+        ...(orderId?{orderId}:{})
+      });
+      setCheckoutStatus('If this email has a confirmed purchase, a one-time access code will arrive shortly. Check your inbox and spam folder.');
+    }catch(error){
+      setCheckoutStatus(error.message);
+    }finally{
+      sendCodeButton.disabled=false;
+    }
+  });
+  redeemButton.addEventListener('click',async()=>{
+    if(!emailInput.reportValidity()) return;
+    redeemButton.disabled=true;
+    try{
+      const result=await postAccessRequest('/api/access/redeem-code',{
+        email:emailInput.value.trim(),
+        code:codeInput.value.trim()
+      });
+      localStorage.setItem(LIFETIME_ACCESS_KEY,result.accessToken);
+      sessionStorage.removeItem('kcal-lifetime-purchase-email');
+      unlockLifetimeAccess();
+    }catch(error){
+      setCheckoutStatus(error.message);
+    }finally{
+      redeemButton.disabled=false;
+    }
+  });
+  const query=new URLSearchParams(window.location.search);
+  if(query.get('purchase')==='complete'){
+    const savedEmail=sessionStorage.getItem('kcal-lifetime-purchase-email');
+    if(savedEmail) emailInput.value=savedEmail;
+    const orderId=query.get('order');
+    if(emailInput.value&&orderId){
+      postAccessRequest('/api/access/send-code',{email:emailInput.value,orderId})
+        .then(()=>setCheckoutStatus('Payment return received. If payment is confirmed, a one-time access code will arrive shortly.'))
+        .catch(error=>setCheckoutStatus(error.message));
+    }else{
+      setCheckoutStatus('Payment return received. Enter your checkout email and choose “Restore lifetime access by email” once payment is confirmed.');
+    }
+    window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
+  }else if(query.get('purchase')==='cancelled'){
+    setCheckoutStatus('Checkout was cancelled. Your trial entries are unchanged; you can try again whenever you are ready.');
+    window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
+  }else if(query.get('offer')==='lifetime'){
+    openPurchasePanel(false);
+    window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
+  }
 }
 configureLifetimeCheckout();
 trialInit();

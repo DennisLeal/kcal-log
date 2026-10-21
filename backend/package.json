@@ -1,19 +1,15 @@
 {
-  "name": "kcal-log-backend",
-  "version": "0.1.0",
-  "description": "Simple backend to generate and verify one-time unlock codes for kcal-log",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+  "name": "kcal-log-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker API for Kcal Log lifetime purchases",
+  "engines": {
+    "node": ">=22"
   },
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "body-parser": "^1.20.2",
-    "uuid": "^9.0.0",
-    "nodemailer": "^6.9.4"
+  "scripts": {
+    "dev": "npx --yes wrangler@4.151.3 dev",
+    "deploy": "npx --yes wrangler@4.151.3 deploy",
+    "test": "node --test"
   }
 }

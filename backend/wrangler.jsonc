@@ -1,0 +1,20 @@
+{
+  "name": "kcal-log-api",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-21",
+  "workers_dev": true,
+  "vars": {
+    "APP_URL": "https://dennisleal.github.io/kcal-log/",
+    "APP_ORIGIN": "https://dennisleal.github.io",
+    "ALERT_EMAIL_TO": "lealdennis110@gmail.com",
+    "PAYMONGO_MODE": "test"
+  },
+  "d1_databases": [
+    {
+      "binding": "PAYMENTS_DB",
+      "database_name": "kcal-log-payments",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

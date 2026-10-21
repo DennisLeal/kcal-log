@@ -1,8 +1,9 @@
 const CACHE_PREFIX = 'kcal-log-';
-const CACHE_NAME = 'kcal-log-v2';
+const CACHE_NAME = 'kcal-log-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './privacy.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'

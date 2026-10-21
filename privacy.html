@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f4ee">
+  <title>Privacy notice — Kcal Log</title>
+  <style>
+    :root{color-scheme:light;--ink:#2b2620;--muted:#655e55;--line:#ded8cc;--paper:#f7f4ee;--card:#fff}
+    *{box-sizing:border-box}
+    body{margin:0;padding:24px;background:var(--paper);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
+    main{max-width:720px;margin:0 auto;padding:24px;background:var(--card);border:1px solid var(--line);border-radius:18px}
+    h1{margin:0 0 4px;font-size:28px;line-height:1.2}
+    h2{margin:24px 0 6px;font-size:18px}
+    p,ul{margin:8px 0;color:var(--muted)}
+    a{color:#1d4ed8}
+    .date{margin:0 0 20px;font-size:13px}
+    @media(max-width:520px){body{padding:12px}main{padding:18px}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Kcal Log privacy notice</h1>
+  <p class="date">Last updated: October 22, 2026</p>
+  <p>Kcal Log is an installable web app. Your calorie entries and profile are stored in your browser on your device. Kcal Log does not send those logs to its payment backend.</p>
+
+  <h2>Information stored on your device</h2>
+  <p>The app stores food entries, profile and goal settings, and a local trial-start date in browser storage. These values are not part of a purchase. You can export a JSON backup from the app; keep that file somewhere secure because it contains your log data.</p>
+  <p>Clearing browser data or changing devices can remove or separate local logs. Restore a backup to move logs. A backup does not include a purchase entitlement.</p>
+
+  <h2>Information used for a purchase</h2>
+  <p>If you choose to buy lifetime access, the email address you enter and a random order reference are sent to the Kcal Log backend hosted on Cloudflare Workers and D1, and to PayMongo Checkout. The backend records the order amount, currency, payment status and identifiers, timestamps, and hashes of one-time recovery codes and access tokens. It does not receive your calorie logs.</p>
+  <p>PayMongo processes the payment and may collect payment details directly on its checkout page. PayMongo's handling of payment information is governed by its own privacy terms. Resend delivers purchase confirmations and recovery codes; Kcal Log also emails the app owner a purchase notification.</p>
+
+  <h2>Why we use purchase information</h2>
+  <ul>
+    <li>To create and verify a checkout and grant access only after payment confirmation.</li>
+    <li>To send purchase confirmations, one-time recovery codes, and respond to support requests.</li>
+    <li>To maintain lifetime purchase records and help resolve payment or access disputes.</li>
+  </ul>
+  <p>Purchase records are kept for as long as needed to provide lifetime access, resolve disputes, and meet applicable recordkeeping obligations. Recovery codes are stored as hashes and expire after 10 minutes. Access tokens are stored as hashes on the server; your active token is stored in browser storage.</p>
+
+  <h2>Hosting and security</h2>
+  <p>The app is hosted as a static site. Cloudflare hosts the payment API and D1 purchase database, while PayMongo processes checkout and Resend sends transactional email. These providers may process technical request information under their own privacy policies. The backend uses HTTPS, limits recovery attempts, and does not store meal logs.</p>
+
+  <h2>Your choices and support</h2>
+  <p>You can use Kcal Log without purchasing. You can delete local app data through your browser settings and request a copy or deletion of purchase information by contacting <a href="mailto:lealdennis110@gmail.com">lealdennis110@gmail.com</a>, subject to applicable recordkeeping requirements. Deleting purchase records may prevent future recovery of lifetime access.</p>
+
+  <p><a href="./index.html">Return to Kcal Log</a></p>
+</main>
+</body>
+</html>
