@@ -4,7 +4,10 @@ import test from 'node:test';
 import worker, {
   checkRateLimit,
   getWebhookEvent,
+  isValidEmailRelayURL,
   parseSignatureHeader,
+  paymentConfigurationReady,
+  sendEmail,
   validEmail,
   validatePaidCheckout,
   verifyWebhookSignature
@@ -17,6 +20,94 @@ test('email validation normalizes valid addresses and rejects malformed input', 
   assert.equal(validEmail('invalid'), null);
   assert.equal(validEmail('user@localhost'), null);
   assert.equal(validEmail('x'.repeat(245) + '@example.com'), null);
+});
+
+test('Google Apps Script relay URL validation only accepts HTTPS web-app endpoints', () => {
+  assert.equal(
+    isValidEmailRelayURL('https://script.google.com/macros/s/AbCd123/exec'),
+    true
+  );
+  assert.equal(
+    isValidEmailRelayURL('https://script.google.com.evil.example/macros/s/AbCd123/exec'),
+    false
+  );
+  assert.equal(
+    isValidEmailRelayURL('http://script.google.com/macros/s/AbCd123/exec'),
+    false
+  );
+  assert.equal(
+    isValidEmailRelayURL('https://script.google.com/macros/s/AbCd123/dev'),
+    false
+  );
+});
+
+test('payment readiness requires a valid relay URL and HMAC secret', () => {
+  const config = {
+    PAYMONGO_SECRET_KEY: 'sk_test_example',
+    PAYMONGO_WEBHOOK_SECRET: 'whsk_test_example',
+    EMAIL_RELAY_URL: 'https://script.google.com/macros/s/AbCd123/exec',
+    EMAIL_RELAY_HMAC_SECRET: 'a'.repeat(64),
+    APP_URL: 'https://dennisleal.github.io/kcal-log/',
+    APP_ORIGIN: env.APP_ORIGIN,
+    ALERT_EMAIL_TO: 'owner@example.com',
+    PAYMONGO_MODE: 'test'
+  };
+
+  assert.equal(paymentConfigurationReady(config), true);
+  assert.equal(paymentConfigurationReady({ ...config, EMAIL_RELAY_HMAC_SECRET: '' }), false);
+  assert.equal(paymentConfigurationReady({ ...config, EMAIL_RELAY_HMAC_SECRET: 'short' }), false);
+  assert.equal(paymentConfigurationReady({
+    ...config,
+    EMAIL_RELAY_URL: 'https://attacker.example/relay'
+  }), false);
+});
+
+test('email sending signs the exact payload and rejects unsuccessful relay responses', async () => {
+  const originalFetch = globalThis.fetch;
+  const originalConsoleError = console.error;
+  const secret = 'relay-secret'.repeat(6);
+  const email = {
+    to: 'buyer@example.com',
+    subject: 'Purchase confirmed',
+    text: 'Your access code is ABC123.'
+  };
+  const relayURL = 'https://script.google.com/macros/s/AbCd123/exec';
+  let requestEnvelope;
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, relayURL);
+    assert.equal(options.method, 'POST');
+    requestEnvelope = JSON.parse(options.body);
+    const expected = createHmac('sha256', secret)
+      .update(`${requestEnvelope.timestamp}\n${requestEnvelope.nonce}\n${requestEnvelope.payload}`)
+      .digest('hex');
+    assert.equal(requestEnvelope.signature, expected);
+    assert.deepEqual(JSON.parse(requestEnvelope.payload), email);
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  };
+
+  try {
+    await sendEmail({
+      EMAIL_RELAY_URL: relayURL,
+      EMAIL_RELAY_HMAC_SECRET: secret
+    }, email);
+    assert.match(requestEnvelope.nonce, /^[A-Za-z0-9_-]{24}$/);
+
+    globalThis.fetch = async () => new Response(
+      JSON.stringify({ ok: false }),
+      { status: 200 }
+    );
+    console.error = () => {};
+    await assert.rejects(
+      sendEmail({
+        EMAIL_RELAY_URL: relayURL,
+        EMAIL_RELAY_HMAC_SECRET: secret
+      }, email),
+      /Email delivery failed/
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    console.error = originalConsoleError;
+  }
 });
 
 test('PayMongo signatures parse required timestamp and mode-specific signatures', () => {

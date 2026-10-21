@@ -30,7 +30,7 @@
 
   <h2>Information used for a purchase</h2>
   <p>If you choose to buy lifetime access, the email address you enter and a random order reference are sent to the Kcal Log backend hosted on Cloudflare Workers and D1, and to PayMongo Checkout. The backend records the order amount, currency, payment status and identifiers, timestamps, and hashes of one-time recovery codes and access tokens. It does not receive your calorie logs.</p>
-  <p>PayMongo processes the payment and may collect payment details directly on its checkout page. PayMongo's handling of payment information is governed by its own privacy terms. Resend delivers purchase confirmations and recovery codes; Kcal Log also emails the app owner a purchase notification.</p>
+  <p>PayMongo processes the payment and may collect payment details directly on its checkout page. PayMongo's handling of payment information is governed by its own privacy terms. Purchase confirmations and recovery codes, which include the recipient's email address and message content, are sent through Google Apps Script and the Gmail account of the app owner. Kcal Log also emails the app owner a purchase notification. Google's handling of this information is governed by Google's privacy terms and Apps Script/Gmail quotas and availability.</p>
 
   <h2>Why we use purchase information</h2>
   <ul>
@@ -41,7 +41,7 @@
   <p>Purchase records are kept for as long as needed to provide lifetime access, resolve disputes, and meet applicable recordkeeping obligations. Recovery codes are stored as hashes and expire after 10 minutes. Access tokens are stored as hashes on the server; your active token is stored in browser storage.</p>
 
   <h2>Hosting and security</h2>
-  <p>The app is hosted as a static site. Cloudflare hosts the payment API and D1 purchase database, while PayMongo processes checkout and Resend sends transactional email. These providers may process technical request information under their own privacy policies. The backend uses HTTPS, limits recovery attempts, and does not store meal logs.</p>
+  <p>The app is hosted as a static site. Cloudflare hosts the payment API and D1 purchase database, PayMongo processes checkout, and Google Apps Script/Gmail sends transactional email through the app owner's account. These providers may process technical request information under their own privacy policies. Google may apply daily recipient quotas, and delivery can be delayed or unavailable if quotas or service limits are reached. The backend uses HTTPS, limits recovery attempts, and does not store meal logs.</p>
 
   <h2>Your choices and support</h2>
   <p>You can use Kcal Log without purchasing. You can delete local app data through your browser settings and request a copy or deletion of purchase information by contacting <a href="mailto:lealdennis110@gmail.com">lealdennis110@gmail.com</a>, subject to applicable recordkeeping requirements. Deleting purchase records may prevent future recovery of lifetime access.</p>

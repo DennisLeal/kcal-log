@@ -7,7 +7,7 @@ This Cloudflare Worker creates PayMongo Hosted Checkout sessions, grants lifetim
 - A Cloudflare account with Workers and D1 enabled.
 - Node.js 22 or newer.
 - A PayMongo account with test credentials and permission to configure webhooks.
-- A Resend account and a verified sender domain for customer email delivery.
+- A Google account that can deploy Google Apps Script web apps and send mail using Apps Script.
 
 The Wrangler CLI is pinned in the npm scripts. You do not need to install it globally or add Worker dependencies to `node_modules`.
 
@@ -29,18 +29,30 @@ npx --yes wrangler@4.151.3 d1 migrations apply kcal-log-payments --remote
 
 Do not deploy while the placeholder database ID remains in the config.
 
-## Configure secrets and email
+## Configure the Google Apps Script email relay
 
-In Resend, verify a domain you control and add the DNS records Resend provides. Choose a sender address on that verified domain. Do not use `onboarding@resend.dev` for customer delivery; it is intended for limited testing.
+The relay sends purchase confirmation, recovery-code, and owner-notification emails through the Google account that owns the script. This avoids buying a domain, but it is intended for a low-volume prototype, not a high-volume transactional service. Consumer Gmail Apps Script accounts currently have a daily recipient quota (commonly 100 recipients/day); Google may change quotas, and sending can fail when they are exhausted.
 
-Set secrets directly in Wrangler's secure secret store. Do not put these values in source files, the PWA, GitHub Pages, or chat:
+1. Open [Google Apps Script](https://script.google.com/) and create a standalone project.
+2. Replace the starter code with [`Code.gs`](./Code.gs).
+3. In **Project Settings → Script properties**, add `EMAIL_RELAY_HMAC_SECRET`. Generate a strong random value locally, for example:
+
+   ```powershell
+   node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+   ```
+
+   Store it in the Apps Script property and Cloudflare Worker secret store. Do not paste it into chat, commit it, add it to the PWA, or put it in the deployment URL.
+4. Deploy the project as a **Web app**, execute it as your account, and allow access to **Anyone** so the Cloudflare Worker can call it without a Google sign-in. Google may label this setting differently or restrict anonymous web apps for some account types; if anonymous access is unavailable, the relay cannot be used with this design. Authorize the script to send email when prompted. Use the deployed URL ending in `/exec`, not the editor or `/dev` URL.
+5. In `backend`, set the relay URL and the same HMAC secret in Cloudflare:
 
 ```powershell
+npx --yes wrangler@4.151.3 secret put EMAIL_RELAY_URL
+npx --yes wrangler@4.151.3 secret put EMAIL_RELAY_HMAC_SECRET
 npx --yes wrangler@4.151.3 secret put PAYMONGO_SECRET_KEY
 npx --yes wrangler@4.151.3 secret put PAYMONGO_WEBHOOK_SECRET
-npx --yes wrangler@4.151.3 secret put RESEND_API_KEY
-npx --yes wrangler@4.151.3 secret put RESEND_FROM_EMAIL
 ```
+
+The relay accepts only signed requests with a short timestamp window, rejects reused nonces, limits payload size and recipient count, and sends only the signed recipient, subject, and text. Keep the Apps Script deployment restricted to the minimum access setting that allows the Worker to call it. Anyone with the deployment URL can reach the endpoint, but cannot send mail without the HMAC secret.
 
 The committed configuration uses `PAYMONGO_MODE=test`, and the API accepts only a test secret key in that mode. Keep test and live webhook secrets separate. For each PayMongo mode, register this HTTPS endpoint and subscribe to `checkout_session.payment.paid`:
 
@@ -65,7 +77,7 @@ In another terminal, the local health endpoint should return `{"status":"ok"}` a
 Invoke-RestMethod http://localhost:8787/health
 ```
 
-Local checkout and email delivery remain unavailable until test secrets and a sender address are configured. Deploy only after setting the real D1 ID, migrating the remote database, setting secrets, and configuring the PayMongo test webhook:
+Local checkout and email delivery remain unavailable until test secrets and the relay are configured. Deploy only after setting the real D1 ID, migrating the remote database, setting secrets, and configuring the PayMongo test webhook:
 
 ```powershell
 npm run deploy
@@ -86,7 +98,7 @@ The deployment output includes the Worker HTTPS origin. Set `ACCESS_API_BASE_URL
 
 - `wrangler.jsonc` sets the app and allowed browser origin to the current GitHub Pages URL. Update both if the PWA is moved to another origin.
 - `../index.html` deliberately ships with an empty API origin until the Worker is deployed.
-- Review `../privacy.html` before launch. It identifies the app's local log storage, Cloudflare and D1 backend, PayMongo checkout, and Resend email processing.
+- Review `../privacy.html` before launch. It identifies the app's local log storage, Cloudflare and D1 backend, PayMongo checkout, and Google Apps Script/Gmail email processing.
 - Use Cloudflare's dashboard to review Worker and D1 usage and configure backups/retention appropriate to purchase records. Do not store food logs or access codes in plaintext in D1.
 - The old `backend/codes.json` and Express admin workflow are retired. Its current-version copy has been removed, but historic copies remain in the public Git history; no history rewrite has been authorized.
 
@@ -94,4 +106,4 @@ The deployment output includes the Worker HTTPS origin. Set `ACCESS_API_BASE_URL
 
 This backend is for web purchases by PWA users. It is not Google Play Billing, an Android APK, or an iOS App Store purchase flow. Store distribution and native billing need a separate product and platform decision. Trial download analytics are also not enabled; adding them would require a clear opt-in and corresponding privacy disclosure.
 
-Before enabling real payments, confirm PayMongo live access, configure separate live credentials and webhook, confirm Resend domain delivery, and repeat purchase/recovery checks with production services. Never paste credentials into chat.
+Before enabling real payments, confirm PayMongo live access, configure separate live credentials and webhook, verify Gmail delivery and remaining Apps Script quota, and repeat purchase/recovery checks with production services. Never paste credentials into chat. For higher volume or stronger delivery guarantees, replace the prototype relay with a transactional email provider and a verified sender domain.

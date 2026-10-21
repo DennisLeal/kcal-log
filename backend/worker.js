@@ -123,8 +123,9 @@ function paymentConfigurationReady(env) {
   return Boolean(
     env.PAYMONGO_SECRET_KEY &&
     env.PAYMONGO_WEBHOOK_SECRET &&
-    env.RESEND_API_KEY &&
-    env.RESEND_FROM_EMAIL &&
+    isValidEmailRelayURL(env.EMAIL_RELAY_URL) &&
+    typeof env.EMAIL_RELAY_HMAC_SECRET === 'string' &&
+    env.EMAIL_RELAY_HMAC_SECRET.length >= 32 &&
     env.APP_URL &&
     env.APP_ORIGIN &&
     env.ALERT_EMAIL_TO &&
@@ -132,6 +133,21 @@ function paymentConfigurationReady(env) {
       ? env.PAYMONGO_SECRET_KEY.startsWith('sk_test_')
       : env.PAYMONGO_MODE === 'live' && env.PAYMONGO_SECRET_KEY.startsWith('sk_live_'))
   );
+}
+
+function isValidEmailRelayURL(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' &&
+      url.hostname === 'script.google.com' &&
+      !url.username &&
+      !url.password &&
+      !url.search &&
+      !url.hash &&
+      /^\/macros\/s\/[^/]+\/exec$/.test(url.pathname);
+  } catch {
+    return false;
+  }
 }
 
 async function readJson(request, maxBytes = 32 * 1024) {
@@ -164,27 +180,44 @@ async function checkRateLimit(db, key, maximum, windowMs, now = Date.now()) {
 }
 
 async function sendEmail(env, { to, subject, text }) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const nonce = randomToken(18);
+  const payload = JSON.stringify({ to, subject, text });
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(env.EMAIL_RELAY_HMAC_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const message = new TextEncoder().encode(`${timestamp}\n${nonce}\n${payload}`);
+  const signatureBytes = new Uint8Array(await crypto.subtle.sign('HMAC', key, message));
+  const signature = Array.from(
+    signatureBytes,
+    byte => byte.toString(16).padStart(2, '0')
+  ).join('');
+
   let response;
   try {
-    response = await fetch('https://api.resend.com/emails', {
+    response = await fetch(env.EMAIL_RELAY_URL, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: env.RESEND_FROM_EMAIL,
-        to: [to],
-        subject,
-        text
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ timestamp, nonce, payload, signature }),
+      signal: AbortSignal.timeout(15000)
     });
   } catch (error) {
     console.error('Email delivery request failed:', error.message);
     throw new Error('Email delivery failed.');
   }
-  if (!response.ok) {
-    console.error('Email delivery failed with status', response.status);
+  let result;
+  try {
+    result = await response.json();
+  } catch {
+    console.error('Email relay returned an invalid response with status', response.status);
+    throw new Error('Email delivery failed.');
+  }
+  if (!response.ok || result?.ok !== true) {
+    console.error('Email relay failed with status', response.status);
     throw new Error('Email delivery failed.');
   }
 }
@@ -361,7 +394,8 @@ async function handleSendAccessCode(request, env) {
         subject: 'Your Kcal Log access code',
         text: `Your one-time Kcal Log access code is ${code}.\n\nIt expires in 10 minutes. Enter it in Kcal Log to unlock or restore lifetime access. If you did not request this code, you can ignore this message.`
       });
-    } catch {
+    } catch (error) {
+      console.error('Access code email delivery failed:', error.message);
       await env.PAYMENTS_DB.prepare(
         'DELETE FROM access_codes WHERE email = ?1 AND code_hash = ?2'
       ).bind(email, codeHash).run();
@@ -558,9 +592,11 @@ export {
   checkRateLimit,
   getWebhookEvent,
   handleRequest,
+  isValidEmailRelayURL,
   parseSignatureHeader,
   paymentConfigurationReady,
   sha256Hex,
+  sendEmail,
   validEmail,
   validatePaidCheckout,
   verifyWebhookSignature
