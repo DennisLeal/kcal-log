@@ -13,7 +13,7 @@ function jsonResponse(body, status = 200, origin = null, env = {}) {
   if (origin && origin === env.APP_ORIGIN) {
     headers.set('Access-Control-Allow-Origin', origin);
     headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Trial-Id');
     headers.set('Vary', 'Origin');
   }
   return new Response(JSON.stringify(body), { status, headers });
@@ -483,6 +483,9 @@ async function handleAccessStatus(request, env) {
 const FOOD_PHOTO_MAX_BASE64 = 1_400_000;
 const FOOD_PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const FOOD_PHOTO_DAY_MS = 24 * 60 * 60 * 1000;
+const FOOD_TRIAL_WINDOW_MS = 3 * FOOD_PHOTO_DAY_MS;
+const FOOD_TRIAL_MAX_PHOTOS = 5;
+const FOOD_TRIAL_IP_MAX_PHOTOS = 15;
 const MACRO_FIELDS = ['kcal', 'protein', 'carbs', 'fat'];
 
 const FOOD_PROMPT = `You are a nutrition analyst for a Filipino calorie-tracking app.
@@ -605,8 +608,13 @@ async function handleAnalyzeFood(request, env) {
     return jsonResponse({ error: 'photo analysis is not configured' }, 503, origin, env);
   }
   const access = await findPaidAccess(request, env);
+  let trial = null;
   if (!access) {
-    return jsonResponse({ error: 'photo analysis is a lifetime-access feature' }, 403, origin, env);
+    const trialId = request.headers.get('X-Trial-Id') || '';
+    if (!/^[A-Za-z0-9_-]{16,64}$/.test(trialId)) {
+      return jsonResponse({ error: 'photo analysis needs a trial or lifetime access' }, 403, origin, env);
+    }
+    trial = { idHash: await sha256Hex(trialId) };
   }
   const body = await readJson(request, FOOD_PHOTO_MAX_BASE64 + 4096);
   if (!body) return jsonResponse({ error: 'invalid or oversized request' }, 400, origin, env);
@@ -622,8 +630,16 @@ async function handleAnalyzeFood(request, env) {
 
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const dailyCap = Number(env.GEMINI_DAILY_CAP) > 0 ? Number(env.GEMINI_DAILY_CAP) : 800;
-  if (!await checkRateLimit(env.PAYMENTS_DB, `food-token:${access.tokenHash}`, access.tester ? 300 : 40, FOOD_PHOTO_DAY_MS) ||
-      !await checkRateLimit(env.PAYMENTS_DB, `food-ip:${await sha256Hex(ip)}`, 60, FOOD_PHOTO_DAY_MS)) {
+  if (trial) {
+    const ipHash = await sha256Hex(ip);
+    if (!await checkRateLimit(env.PAYMENTS_DB, `food-trial:${trial.idHash}`, FOOD_TRIAL_MAX_PHOTOS, FOOD_TRIAL_WINDOW_MS) ||
+        !await checkRateLimit(env.PAYMENTS_DB, `food-trial-ip:${ipHash}`, FOOD_TRIAL_IP_MAX_PHOTOS, FOOD_TRIAL_WINDOW_MS)) {
+      return jsonResponse({ error: 'your free trial photos are used up', code: 'trial-limit' }, 403, origin, env);
+    }
+  } else if (!await checkRateLimit(env.PAYMENTS_DB, `food-token:${access.tokenHash}`, access.tester ? 300 : 40, FOOD_PHOTO_DAY_MS)) {
+    return jsonResponse({ error: 'daily photo limit reached; try again tomorrow' }, 429, origin, env);
+  }
+  if (!await checkRateLimit(env.PAYMENTS_DB, `food-ip:${await sha256Hex(ip)}`, 60, FOOD_PHOTO_DAY_MS)) {
     return jsonResponse({ error: 'daily photo limit reached; try again tomorrow' }, 429, origin, env);
   }
   if (!await checkRateLimit(env.PAYMENTS_DB, 'food-global', dailyCap, FOOD_PHOTO_DAY_MS)) {
@@ -748,7 +764,7 @@ async function handleRequest(request, env) {
     }
     const headers = new Headers({
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Trial-Id',
       'Access-Control-Max-Age': '86400',
       'Cache-Control': 'no-store',
       'Vary': 'Origin'

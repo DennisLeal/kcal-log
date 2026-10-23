@@ -327,6 +327,30 @@ test('photo analysis is refused without lifetime access or configuration', async
   assert.equal(noKey.status, 503);
 });
 
+test('trial users get a limited number of photos via a trial id', async () => {
+  const photo = { image: 'AAAA', mimeType: 'image/jpeg', grams: 150 };
+  const trialRequest = (id) => new Request('https://api.example/api/analyze-food', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(id ? { 'X-Trial-Id': id } : {}) },
+    body: JSON.stringify(photo)
+  });
+  const noId = await worker.fetch(trialRequest(null), foodEnv({ paid: false }));
+  assert.equal(noId.status, 403);
+  const badId = await worker.fetch(trialRequest('short'), foodEnv({ paid: false }));
+  assert.equal(badId.status, 403);
+  const used = await worker.fetch(trialRequest('trial-id-1234567890abcd'), foodEnv({ paid: false, count: 6 }));
+  assert.equal(used.status, 403);
+  assert.equal((await used.json()).code, 'trial-limit');
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('{}', { status: 429 });
+  try {
+    const allowed = await worker.fetch(trialRequest('trial-id-1234567890abcd'), foodEnv({ paid: false, count: 5 }));
+    assert.equal(allowed.status, 503);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('tester invite codes unlock access without a paid order', async () => {
   const testerEnv = { ...foodEnv({ paid: false }), TESTER_CODES: 'short, friends-code-123456' };
   const status = (token) => worker.fetch(new Request('https://api.example/api/access/status', {
