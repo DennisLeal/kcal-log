@@ -75,7 +75,7 @@ h1 {
    ========================================================= */
 .main-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin: -4px 0 16px;
 }
@@ -810,171 +810,6 @@ select:focus {
   color: var(--ink-soft);
   margin: -6px 0 14px 2px;
 }
-/* =========================================================
-   FOODS TAB
-   ========================================================= */
-.foods-search {
-  margin-bottom: 12px;
-}
-.foods-cat-title {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--mustard-dark);
-  font-weight: 700;
-  margin: 16px 0 6px 2px;
-}
-.foods-cat-title:first-of-type {
-  margin-top: 4px;
-}
-.food-row {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-}
-.food-row-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-.food-name {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink);
-}
-.food-per100 {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 11px;
-  color: var(--ink-soft);
-  white-space: nowrap;
-}
-.food-row-bottom {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-}
-.food-grams {
-  width: 64px;
-  font-size: 13px;
-  padding: 7px 8px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--paper);
-  color: var(--ink);
-  text-align: center;
-}
-.food-grams-label {
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-.food-kcal-result {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--mustard-dark);
-  flex: 1;
-  text-align: right;
-}
-.food-add-btn {
-  background: var(--ink);
-  color: var(--paper);
-  border: none;
-  border-radius: 8px;
-  padding: 7px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.food-add-btn:active {
-  background: var(--mustard-dark);
-}
-.foods-empty {
-  text-align: center;
-  color: var(--ink-soft);
-  font-size: 13px;
-  padding: 24px 10px;
-}
-.food-unit-input {
-  width: 64px;
-  font-size: 13px;
-  padding: 7px 8px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--paper);
-  color: var(--ink);
-  text-align: center;
-}
-.food-lookup-card {
-  margin-top: 18px;
-  background: var(--paper-dim);
-  border: 1px dashed var(--line);
-  border-radius: 14px;
-  padding: 14px;
-}
-.food-lookup-title {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 5px;
-}
-.food-lookup-text {
-  font-size: 11.5px;
-  color: var(--ink-soft);
-  line-height: 1.5;
-  margin-bottom: 10px;
-}
-.food-lookup-link {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--mustard-dark);
-  text-decoration: none;
-  padding: 9px 0;
-  border-top: 1px dashed var(--line);
-}
-.food-lookup-link:first-of-type {
-  border-top: none;
-}
-.usda-search-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.usda-search-row input {
-  flex: 1;
-}
-.usda-search-btn {
-  background: var(--ink);
-  color: var(--paper);
-  border: none;
-  border-radius: 10px;
-  padding: 0 16px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.usda-search-btn:active {
-  background: var(--mustard-dark);
-}
-.usda-search-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-.usda-status {
-  font-size: 11.5px;
-  color: var(--ink-soft);
-  margin: 0 0 10px 2px;
-  min-height: 14px;
-}
-.usda-status.error {
-  color: var(--rust);
-}
 
 /* === Trial Mode Overlay === */
 #trialBanner{background:#FFF4E5;border:1px solid #F3D19C;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
@@ -1047,7 +882,6 @@ select:focus {
     <button id="tabLogBtn" class="active">Log</button>
     <button id="tabSummaryBtn">Summary</button>
     <button id="tabProfileBtn">Profile</button>
-    <button id="tabFoodsBtn">Foods</button>
   </div>
   <!-- =====================================================
        LOG VIEW
@@ -1312,35 +1146,6 @@ select:focus {
       <p id="backupStatus" class="backup-status" role="status" aria-live="polite" hidden></p>
     </section>
   </div>
-  <!-- =====================================================
-       FOODS VIEW (Philippine food calorie reference)
-       ===================================================== -->
-  <div id="foodsView" style="display:none;">
-    <div class="summary-note">
-      Approximate calories for common Filipino dishes, pantry staples, and everyday packaged foods. Actual values vary by brand and recipe — use these as a quick reference, adjust the amount, then tap "Use" to drop it straight into today's log.
-    </div>
-    <input
-      type="text"
-      id="foodsSearch"
-      class="foods-search"
-      placeholder="Search a food (e.g. adobo, tuna, bread, egg)"
-      autocomplete="off"
-    >
-    <div id="foodsList"></div>
-    <div class="food-lookup-card">
-      <div class="food-lookup-title">Can't find it here? Search USDA FoodData Central</div>
-      <div class="food-lookup-text">
-        Live search of the USDA database — thousands of foods and branded products, values per 100g.
-      </div>
-      <div class="usda-search-row">
-        <input type="text" id="usdaSearchInput" placeholder="e.g. peanut butter, white bread" autocomplete="off">
-        <button type="button" class="usda-search-btn" id="usdaSearchBtn">Search</button>
-      </div>
-      <div class="usda-status" id="usdaStatus"></div>
-      <div id="usdaResults"></div>
-      <a class="food-lookup-link" href="https://i.fnri.dost.gov.ph/login/fct" target="_blank" rel="noopener">FNRI PhilFCT — official PH food composition tables ↗</a>
-    </div>
-  </div>
 </div>
 <script>
 (function() {
@@ -1350,8 +1155,6 @@ select:focus {
   const STORAGE_KEY = 'kcal-log-entries';
   const GOAL_KEY = 'kcal-daily-goal';
   const PROFILE_KEY = 'kcal-profile';
-  /* Free key from https://fdc.nal.usda.gov/api-key-signup.html — paste yours below. */
-  const USDA_API_KEY = 'REPLACE_WITH_YOUR_USDA_API_KEY';
   let pendingMacros = null;
   let allEntries = {};
   let dailyGoal = null;
@@ -1884,7 +1687,6 @@ select:focus {
     }
     applyProfileToForm();
     render();
-    buildFoodsList();
   }
   /* =======================================================
      TIME / SORTING
@@ -2010,26 +1812,21 @@ select:focus {
   const tabLogBtn = document.getElementById('tabLogBtn');
   const tabSummaryBtn = document.getElementById('tabSummaryBtn');
   const tabProfileBtn = document.getElementById('tabProfileBtn');
-  const tabFoodsBtn = document.getElementById('tabFoodsBtn');
   const logView = document.getElementById('logView');
   const summaryView = document.getElementById('summaryView');
   const profileView = document.getElementById('profileView');
-  const foodsView = document.getElementById('foodsView');
   function activateTab(name) {
     tabLogBtn.classList.toggle('active', name === 'log');
     tabSummaryBtn.classList.toggle('active', name === 'summary');
     tabProfileBtn.classList.toggle('active', name === 'profile');
-    tabFoodsBtn.classList.toggle('active', name === 'foods');
     logView.style.display = name === 'log' ? '' : 'none';
     summaryView.style.display = name === 'summary' ? '' : 'none';
     profileView.style.display = name === 'profile' ? '' : 'none';
-    foodsView.style.display = name === 'foods' ? '' : 'none';
     if (name === 'summary') renderSummary();
   }
   tabLogBtn.addEventListener('click', () => activateTab('log'));
   tabSummaryBtn.addEventListener('click', () => activateTab('summary'));
   tabProfileBtn.addEventListener('click', () => activateTab('profile'));
-  tabFoodsBtn.addEventListener('click', () => activateTab('foods'));
   /* =======================================================
      SUMMARY TAB SWITCHING
      ======================================================= */
@@ -2380,286 +2177,6 @@ select:focus {
     useBtn.textContent = 'Goal set ✓ (' + dailyGoal + ' kcal)';
   });
   /* =======================================================
-     FOODS TAB — PHILIPPINE FOOD CALORIE REFERENCE
-     Values are approximate, compiled from typical recipe and
-     published nutrition-label estimates. They will vary by
-     brand, ingredients, and preparation method — use as a
-     quick reference, not an exact lab measurement.
-     Each entry: kcal for "refQty" of "unit".
-     unit 'g' -> shown/edited in grams (refQty usually 100).
-     other units -> shown/edited as a whole-number count of
-     that unit (piece, slice, pack, can, cup, sachet, tbsp).
-     ======================================================= */
-  const UNIT_LABELS = {
-    g: { one: 'g', many: 'g' },
-    piece: { one: 'piece', many: 'pieces' },
-    slice: { one: 'slice', many: 'slices' },
-    pack: { one: 'pack', many: 'packs' },
-    can: { one: 'can', many: 'cans' },
-    cup: { one: 'cup', many: 'cups' },
-    sachet: { one: 'sachet', many: 'sachets' },
-    tbsp: { one: 'tbsp', many: 'tbsp' }
-  };
-  function unitLabel(unit, qty) {
-    const u = UNIT_LABELS[unit] || UNIT_LABELS.g;
-    return qty === 1 ? u.one : u.many;
-  }
-  const FOOD_DB = [
-    { cat: 'Ulam / Viands', name: 'Chicken Adobo', kcal: 160, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Pork Adobo', kcal: 230, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Adobong Kangkong', kcal: 85, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Sinigang na Baboy (pork, w/ veg & broth)', kcal: 100, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Sinigang na Bangus', kcal: 85, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Chicken Tinola', kcal: 90, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Beef Nilaga', kcal: 120, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Kare-Kare (w/ peanut sauce)', kcal: 180, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Beef Caldereta', kcal: 200, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Chicken/Pork Afritada', kcal: 140, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Menudo', kcal: 150, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Bicol Express', kcal: 220, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Dinuguan', kcal: 180, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Pinakbet', kcal: 90, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Ginisang Monggo (w/ pork)', kcal: 110, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Laing', kcal: 160, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Chopsuey', kcal: 80, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Lechon Kawali', kcal: 400, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Lechon (roasted, w/ skin)', kcal: 260, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Crispy Pata', kcal: 380, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Sisig (pork, w/ mayo & egg)', kcal: 300, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Tocino (cooked)', kcal: 250, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Longganisa (cooked)', kcal: 300, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Beef Tapa (cooked)', kcal: 220, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Inihaw na Liempo (grilled pork belly)', kcal: 330, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Inihaw na Bangus (grilled milkfish)', kcal: 150, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Fried Chicken, Filipino-style (w/ skin)', kcal: 260, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Fried Tilapia', kcal: 130, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Ampalaya con Carne', kcal: 120, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Ginataang Gulay (vegetables in coconut milk)', kcal: 130, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Corned Beef (canned)', kcal: 230, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Luncheon Meat / Spam (fried slice)', kcal: 300, unit: 'g', refQty: 100 },
-    { cat: 'Ulam / Viands', name: 'Sardines in Tomato Sauce (canned)', kcal: 220, unit: 'can', refQty: 1 },
-    { cat: 'Rice & Noodles', name: 'White Rice, cooked', kcal: 130, unit: 'g', refQty: 100 },
-    { cat: 'Rice & Noodles', name: 'Sinangag (garlic fried rice)', kcal: 190, unit: 'g', refQty: 100 },
-    { cat: 'Rice & Noodles', name: 'Lugaw / Rice Porridge (plain)', kcal: 60, unit: 'g', refQty: 100 },
-    { cat: 'Rice & Noodles', name: 'Pancit Canton (home-cooked)', kcal: 170, unit: 'g', refQty: 100 },
-    { cat: 'Rice & Noodles', name: 'Pancit Bihon', kcal: 140, unit: 'g', refQty: 100 },
-    { cat: 'Rice & Noodles', name: 'Filipino-style Spaghetti (sweet sauce)', kcal: 190, unit: 'g', refQty: 100 },
-    { cat: 'Rice & Noodles', name: 'Pandesal', kcal: 275, unit: 'g', refQty: 100 },
-    { cat: 'Rice & Noodles', name: 'Sliced White Bread (~28g/slice)', kcal: 77, unit: 'slice', refQty: 1 },
-    { cat: 'Snacks & Street Food', name: 'Lumpiang Shanghai (fried)', kcal: 280, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Lumpiang Sariwa (fresh)', kcal: 110, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Banana Cue', kcal: 250, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Turon', kcal: 300, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Kwek-kwek (fried quail egg)', kcal: 250, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Fish Balls (fried)', kcal: 230, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Isaw (grilled)', kcal: 200, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Puto (rice cake)', kcal: 200, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Bibingka', kcal: 210, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Suman', kcal: 180, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Taho', kcal: 90, unit: 'g', refQty: 100 },
-    { cat: 'Snacks & Street Food', name: 'Halo-halo (mixed, no ice cream)', kcal: 120, unit: 'g', refQty: 100 },
-    { cat: 'Packaged & Pantry', name: 'Lucky Me Pancit Canton, Original', kcal: 290, unit: 'pack', refQty: 1 },
-    { cat: 'Packaged & Pantry', name: 'Lucky Me Instant Mami Noodles', kcal: 225, unit: 'pack', refQty: 1 },
-    { cat: 'Packaged & Pantry', name: 'Century Tuna Flakes in Oil (drained)', kcal: 200, unit: 'can', refQty: 1 },
-    { cat: 'Packaged & Pantry', name: 'Instant Coffee 3-in-1 Sachet', kcal: 85, unit: 'sachet', refQty: 1 },
-    { cat: 'Packaged & Pantry', name: 'Peanut Butter', kcal: 95, unit: 'tbsp', refQty: 1 },
-    { cat: 'Packaged & Pantry', name: 'Regular Softdrink, 1 can (330ml)', kcal: 140, unit: 'can', refQty: 1 },
-    { cat: 'Packaged & Pantry', name: 'Fresh Milk, 1 cup (244ml)', kcal: 150, unit: 'cup', refQty: 1 },
-    { cat: 'Fruits & Basics', name: 'Banana (saba, boiled)', kcal: 115, unit: 'g', refQty: 100 },
-    { cat: 'Fruits & Basics', name: 'Banana (lakatan/latundan)', kcal: 90, unit: 'g', refQty: 100 },
-    { cat: 'Fruits & Basics', name: 'Mango (ripe)', kcal: 60, unit: 'g', refQty: 100 },
-    { cat: 'Fruits & Basics', name: 'Papaya', kcal: 40, unit: 'g', refQty: 100 },
-    { cat: 'Fruits & Basics', name: 'Pineapple', kcal: 50, unit: 'g', refQty: 100 },
-    { cat: 'Fruits & Basics', name: 'Watermelon', kcal: 30, unit: 'g', refQty: 100 },
-    { cat: 'Fruits & Basics', name: 'Hard-Boiled Egg (medium)', kcal: 78, unit: 'piece', refQty: 1 },
-    { cat: 'Fruits & Basics', name: 'Fried Egg (w/ oil)', kcal: 95, unit: 'piece', refQty: 1 },
-    { cat: 'Fruits & Basics', name: 'Hotdog (~45g/piece)', kcal: 140, unit: 'piece', refQty: 1 },
-    { cat: 'Fruits & Basics', name: 'Chicken Breast (skinless, cooked)', kcal: 165, unit: 'g', refQty: 100 },
-    { cat: 'Fruits & Basics', name: 'Pork (lean, cooked)', kcal: 240, unit: 'g', refQty: 100 }
-  ];
-  const foodsListEl = document.getElementById('foodsList');
-  const foodsSearchEl = document.getElementById('foodsSearch');
-  function buildFoodsList() {
-    renderFoodsList('');
-  }
-  function renderFoodsList(filter) {
-    const q = (filter || '').trim().toLowerCase();
-    const filtered = FOOD_DB.filter(f => f.name.toLowerCase().includes(q));
-    if (filtered.length === 0) {
-      foodsListEl.innerHTML = `<div class="foods-empty">No matching foods here. Try the search links below for a wider database, or just log your own kcal value directly in the Log tab.</div>`;
-      return;
-    }
-    let html = '';
-    let lastCat = null;
-    filtered.forEach((f) => {
-      if (f.cat !== lastCat) {
-        html += `<div class="foods-cat-title">${escapeHtml(f.cat)}</div>`;
-        lastCat = f.cat;
-      }
-      const perLabel = f.unit === 'g'
-        ? (f.kcal) + ' kcal/' + f.refQty + 'g'
-        : f.kcal + ' kcal / ' + unitLabel(f.unit, f.refQty);
-      html += `
-        <div class="food-row" data-kcal="${f.kcal}" data-refqty="${f.refQty}" data-unit="${f.unit}" data-name="${escapeHtml(f.name)}">
-          <div class="food-row-top">
-            <span class="food-name">${escapeHtml(f.name)}</span>
-            <span class="food-per100">${perLabel}</span>
-          </div>
-          <div class="food-row-bottom">
-            <span class="food-grams-label">${f.unit === 'g' ? 'grams' : 'qty'}</span>
-            <input type="number" class="food-unit-input" value="${f.refQty}" min="${f.unit === 'g' ? 1 : 0}" step="${f.unit === 'g' ? 1 : 1}">
-            <span class="food-kcal-result">${f.kcal} kcal</span>
-            <button class="food-add-btn">Use</button>
-          </div>
-        </div>
-      `;
-    });
-    foodsListEl.innerHTML = html;
-  }
-  foodsSearchEl.addEventListener('input', () => {
-    renderFoodsList(foodsSearchEl.value);
-  });
-  function foodRowKcal(row) {
-    const kcalRef = Number(row.getAttribute('data-kcal'));
-    const refQty = Number(row.getAttribute('data-refqty')) || 1;
-    let qty = Number(row.querySelector('.food-unit-input').value);
-    if (!Number.isFinite(qty) || qty < 0) qty = 0;
-    return { qty: qty, kcal: Math.round((kcalRef * qty) / refQty) };
-  }
-  foodsListEl.addEventListener('input', e => {
-    if (!e.target.classList.contains('food-unit-input')) return;
-    const row = e.target.closest('.food-row');
-    const result = foodRowKcal(row);
-    row.querySelector('.food-kcal-result').textContent = result.kcal + ' kcal';
-  });
-  foodsListEl.addEventListener('click', e => {
-    if (!e.target.classList.contains('food-add-btn')) return;
-    const row = e.target.closest('.food-row');
-    const name = row.getAttribute('data-name');
-    const unit = row.getAttribute('data-unit');
-    const result = foodRowKcal(row);
-    const qtyLabel = unit === 'g'
-      ? result.qty + 'g'
-      : result.qty + ' ' + unitLabel(unit, result.qty);
-    document.getElementById('foodName').value = name + ' (' + qtyLabel + ')';
-    document.getElementById('kcalInput').value = result.kcal;
-    activateTab('log');
-    document.getElementById('kcalInput').focus();
-  });
-  /* =======================================================
-     USDA FOODDATA CENTRAL SEARCH
-     ======================================================= */
-  const usdaSearchInput = document.getElementById('usdaSearchInput');
-  const usdaSearchBtn = document.getElementById('usdaSearchBtn');
-  const usdaStatusEl = document.getElementById('usdaStatus');
-  const usdaResultsEl = document.getElementById('usdaResults');
-  function getEnergyKcal(foodNutrients) {
-    if (!Array.isArray(foodNutrients)) return null;
-    const hit = foodNutrients.find(n =>
-      n.nutrientId === 1008 ||
-      n.nutrientNumber === '208' ||
-      (n.nutrientName && n.nutrientName.toLowerCase() === 'energy' && (n.unitName || '').toLowerCase() === 'kcal')
-    );
-    if (!hit) return null;
-    const val = hit.value !== undefined ? hit.value : hit.amount;
-    return Number.isFinite(Number(val)) ? Number(val) : null;
-  }
-  async function searchUsda() {
-    const query = usdaSearchInput.value.trim();
-    if (!query) {
-      flash(usdaSearchInput);
-      return;
-    }
-    if (!USDA_API_KEY || USDA_API_KEY === 'YOUR_USDA_API_KEY_HERE') {
-      usdaStatusEl.textContent = 'No USDA API key set yet — paste your free key into USDA_API_KEY near the top of the script.';
-      usdaStatusEl.className = 'usda-status error';
-      usdaResultsEl.innerHTML = '';
-      return;
-    }
-    usdaSearchBtn.disabled = true;
-    usdaStatusEl.textContent = 'Searching…';
-    usdaStatusEl.className = 'usda-status';
-    usdaResultsEl.innerHTML = '';
-    try {
-      const url = 'https://api.nal.usda.gov/fdc/v1/foods/search?api_key=' +
-        encodeURIComponent(USDA_API_KEY) +
-        '&query=' + encodeURIComponent(query) +
-        '&pageSize=15';
-      const res = await fetch(url);
-      if (!res.ok) {
-        if (res.status === 403) throw new Error('USDA API key was rejected (403) — check the key is correct and active.');
-        if (res.status === 429) throw new Error('USDA API rate limit reached — try again shortly.');
-        throw new Error('USDA search failed (status ' + res.status + ').');
-      }
-      const data = await res.json();
-      const foods = Array.isArray(data.foods) ? data.foods : [];
-      if (foods.length === 0) {
-        usdaStatusEl.textContent = 'No results for "' + query + '".';
-        return;
-      }
-      renderUsdaResults(foods);
-      const shown = usdaResultsEl.querySelectorAll('.food-row').length;
-      usdaStatusEl.textContent = shown
-        ? shown + ' result' + (shown === 1 ? '' : 's') + ' from USDA FoodData Central (per 100g).'
-        : 'Found results, but none had usable calorie data.';
-    } catch (err) {
-      console.error('USDA search error:', err);
-      usdaStatusEl.textContent = err.message || 'Could not reach USDA FoodData Central. Check your connection and try again.';
-      usdaStatusEl.className = 'usda-status error';
-    } finally {
-      usdaSearchBtn.disabled = false;
-    }
-  }
-  function renderUsdaResults(foods) {
-    let html = '';
-    foods.forEach(f => {
-      const kcal100 = getEnergyKcal(f.foodNutrients);
-      if (kcal100 === null) return;
-      const name = f.description || 'Unknown food';
-      const brandSuffix = f.brandOwner ? ' — ' + f.brandOwner : '';
-      html += `
-        <div class="food-row" data-kcal="${kcal100}" data-refqty="100" data-unit="g" data-name="${escapeHtml(name)}">
-          <div class="food-row-top">
-            <span class="food-name">${escapeHtml(name)}${escapeHtml(brandSuffix)}</span>
-            <span class="food-per100">${Math.round(kcal100)} kcal/100g</span>
-          </div>
-          <div class="food-row-bottom">
-            <span class="food-grams-label">grams</span>
-            <input type="number" class="food-unit-input" value="100" min="1" step="1">
-            <span class="food-kcal-result">${Math.round(kcal100)} kcal</span>
-            <button class="food-add-btn">Use</button>
-          </div>
-        </div>
-      `;
-    });
-    usdaResultsEl.innerHTML = html;
-  }
-  usdaSearchBtn.addEventListener('click', searchUsda);
-  usdaSearchInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      searchUsda();
-    }
-  });
-  usdaResultsEl.addEventListener('input', e => {
-    if (!e.target.classList.contains('food-unit-input')) return;
-    const row = e.target.closest('.food-row');
-    const result = foodRowKcal(row);
-    row.querySelector('.food-kcal-result').textContent = result.kcal + ' kcal';
-  });
-  usdaResultsEl.addEventListener('click', e => {
-    if (!e.target.classList.contains('food-add-btn')) return;
-    const row = e.target.closest('.food-row');
-    const name = row.getAttribute('data-name');
-    const unit = row.getAttribute('data-unit');
-    const result = foodRowKcal(row);
-    const qtyLabel = unit === 'g' ? result.qty + 'g' : result.qty + ' ' + unitLabel(unit, result.qty);
-    document.getElementById('foodName').value = name + ' (' + qtyLabel + ')';
-    document.getElementById('kcalInput').value = result.kcal;
-    activateTab('log');
-    document.getElementById('kcalInput').focus();
-  });
-  /* =======================================================
      KEYBOARD SHORTCUT
      ======================================================= */
   document.addEventListener('keydown', e => {
@@ -2889,6 +2406,14 @@ function configurePhotoAnalysis(){
  const resultEl=document.getElementById('photoResult');
  const preview=document.getElementById('photoPreview');
  let lastResult=null;
+ // The meal photo exists only in memory while the app is open; it is never written to storage.
+ const clearPhoto=()=>{
+   preview.removeAttribute('src');
+   preview.style.display='none';
+   fileInput.value='';
+ };
+ window.addEventListener('pagehide',clearPhoto);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden') clearPhoto();});
  const setStatus=(message,isError)=>{
    statusEl.textContent=message;
    statusEl.className='photo-status'+(isError?' error':'');
@@ -2970,6 +2495,7 @@ function configurePhotoAnalysis(){
      source:'photo'
    };
    document.getElementById('kcalInput').focus();
+   clearPhoto();
    setStatus('Values added below. Tap “Add to log” to save.',false);
  });
 }
