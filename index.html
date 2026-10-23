@@ -1011,6 +1011,7 @@ a:focus-visible {
 #howTo button{width:100%;min-height:46px;border:0;border-radius:12px;background:#2B2620;color:#FAF7F2;font:inherit;font-weight:700;cursor:pointer}
 /* === Trial Mode Overlay === */
 #trialBanner{background:#FFF4E5;border:1px solid #F3D19C;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+#trialBanner[hidden]{display:none}
 #trialBanner .trial-buy-button{background:transparent;border:0;padding:4px 0 4px 12px;color:#2563EB;font:inherit;font-weight:800;cursor:pointer}
 #trialLock{position:fixed;inset:0;background:rgba(30,38,34,.94);display:none;align-items:center;justify-content:center;padding:20px;z-index:99999}
 #trialLock .card{background:#FAF7F2;color:#2B2620;border-radius:20px;padding:24px;max-width:420px;width:100%;text-align:center}
@@ -2617,10 +2618,8 @@ function setCheckoutStatus(message){
  status.hidden=false;
 }
 function unlockLifetimeAccess(){
- const banner=document.getElementById('trialText');
- if(banner) banner.textContent='Lifetime access ✓ Thank you!';
- const buy=document.getElementById('buyFromTrialBtn');
- if(buy) buy.hidden=true;
+ const bar=document.getElementById('trialBanner');
+ if(bar) bar.hidden=true;
  document.getElementById('trialLock').style.display='none';
  updatePhotoCard();
 }
