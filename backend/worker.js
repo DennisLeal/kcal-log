@@ -460,6 +460,8 @@ async function findPaidAccess(request, env) {
   const token = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
   if (!token || token.length > 128) return null;
   const tokenHash = await sha256Hex(token);
+  const testerCodes = String(env.TESTER_CODES || '').split(',').map(code => code.trim()).filter(code => code.length >= 12);
+  if (testerCodes.includes(token)) return { tokenHash, tester: true };
   const order = await env.PAYMENTS_DB.prepare(`
     SELECT orders.id
     FROM access_tokens
@@ -620,7 +622,7 @@ async function handleAnalyzeFood(request, env) {
 
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const dailyCap = Number(env.GEMINI_DAILY_CAP) > 0 ? Number(env.GEMINI_DAILY_CAP) : 800;
-  if (!await checkRateLimit(env.PAYMENTS_DB, `food-token:${access.tokenHash}`, 40, FOOD_PHOTO_DAY_MS) ||
+  if (!await checkRateLimit(env.PAYMENTS_DB, `food-token:${access.tokenHash}`, access.tester ? 300 : 40, FOOD_PHOTO_DAY_MS) ||
       !await checkRateLimit(env.PAYMENTS_DB, `food-ip:${await sha256Hex(ip)}`, 60, FOOD_PHOTO_DAY_MS)) {
     return jsonResponse({ error: 'daily photo limit reached; try again tomorrow' }, 429, origin, env);
   }

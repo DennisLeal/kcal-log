@@ -2726,6 +2726,11 @@ async function verifySavedAccess(token){
  }
 }
 async function trialInit(){
+ const invite=new URLSearchParams(window.location.search).get('invite');
+ if(invite){
+   if(/^[A-Za-z0-9_-]{12,128}$/.test(invite)) localStorage.setItem(LIFETIME_ACCESS_KEY,invite);
+   window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
+ }
  const savedToken=localStorage.getItem(LIFETIME_ACCESS_KEY);
  if(savedToken&&await verifySavedAccess(savedToken)){
    unlockLifetimeAccess();

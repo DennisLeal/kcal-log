@@ -327,6 +327,16 @@ test('photo analysis is refused without lifetime access or configuration', async
   assert.equal(noKey.status, 503);
 });
 
+test('tester invite codes unlock access without a paid order', async () => {
+  const testerEnv = { ...foodEnv({ paid: false }), TESTER_CODES: 'short, friends-code-123456' };
+  const status = (token) => worker.fetch(new Request('https://api.example/api/access/status', {
+    headers: { Authorization: 'Bearer ' + token }
+  }), testerEnv);
+  assert.equal((await (await status('friends-code-123456')).json()).active, true);
+  assert.equal((await (await status('short')).json()).active, false);
+  assert.equal((await (await status('wrong-code-1234567')).json()).active, false);
+});
+
 test('photo analysis validates input and enforces rate limits', async () => {
   const badWeight = await worker.fetch(foodRequest({ image: 'AAAA', mimeType: 'image/jpeg', grams: 0 }), foodEnv());
   assert.equal(badWeight.status, 400);
