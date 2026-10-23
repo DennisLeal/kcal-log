@@ -3,6 +3,7 @@ import { createHmac } from 'node:crypto';
 import test from 'node:test';
 import worker, {
   checkRateLimit,
+  computeFoodNutrition,
   getWebhookEvent,
   isValidEmailRelayURL,
   parseSignatureHeader,
@@ -271,4 +272,102 @@ test('health check reports D1 availability', async () => {
   });
   assert.equal(unavailable.status, 503);
   assert.deepEqual(await unavailable.json(), { status: 'unavailable' });
+});
+
+test('food nutrition is computed from per-100g values and the weighed portion', () => {
+  const result = computeFoodNutrition({
+    components: [
+      { name: 'Rice', share: 0.6, kcal_per_100g: 130, protein_per_100g: 2.7, carbs_per_100g: 28, fat_per_100g: 0.3 },
+      { name: 'Chicken adobo', share: 0.4, kcal_per_100g: 200, protein_per_100g: 20, carbs_per_100g: 3, fat_per_100g: 12 }
+    ]
+  }, 250);
+  assert.equal(result.per100g.kcal, 158);
+  assert.equal(result.totals.kcal, 395);
+  assert.equal(result.totals.protein, 24.1);
+  assert.equal(result.consistent, true);
+  assert.equal(computeFoodNutrition({ components: [] }, 100), null);
+  assert.equal(computeFoodNutrition({ components: [{ name: 'x', share: 1, kcal_per_100g: 'abc', protein_per_100g: 0, carbs_per_100g: 0, fat_per_100g: 0 }] }, 100), null);
+});
+
+test('food nutrition flags values whose calories disagree with the macros', () => {
+  const result = computeFoodNutrition({
+    components: [{ name: 'Mystery', share: 1, kcal_per_100g: 500, protein_per_100g: 5, carbs_per_100g: 10, fat_per_100g: 5 }]
+  }, 100);
+  assert.equal(result.consistent, false);
+});
+
+function foodRequest(body, token = 'valid-token') {
+  return new Request('https://api.example/api/analyze-food', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body)
+  });
+}
+
+function foodEnv({ paid = true, count = 1 } = {}) {
+  return {
+    ...env,
+    GEMINI_API_KEY: 'test-key',
+    PAYMENTS_DB: {
+      prepare(sql) {
+        return {
+          bind() { return this; },
+          first: async () => (sql.includes('rate_limits') ? { request_count: count } : (paid ? { id: 'order-1' } : null))
+        };
+      }
+    }
+  };
+}
+
+test('photo analysis is refused without lifetime access or configuration', async () => {
+  const photo = { image: 'AAAA', mimeType: 'image/jpeg', grams: 150 };
+  const unpaid = await worker.fetch(foodRequest(photo, 'trial-token'), foodEnv({ paid: false }));
+  assert.equal(unpaid.status, 403);
+  const noKey = await worker.fetch(foodRequest(photo), { ...foodEnv(), GEMINI_API_KEY: undefined });
+  assert.equal(noKey.status, 503);
+});
+
+test('photo analysis validates input and enforces rate limits', async () => {
+  const badWeight = await worker.fetch(foodRequest({ image: 'AAAA', mimeType: 'image/jpeg', grams: 0 }), foodEnv());
+  assert.equal(badWeight.status, 400);
+  const badType = await worker.fetch(foodRequest({ image: 'AAAA', mimeType: 'image/gif', grams: 100 }), foodEnv());
+  assert.equal(badType.status, 400);
+  const limited = await worker.fetch(foodRequest({ image: 'AAAA', mimeType: 'image/jpeg', grams: 100 }), foodEnv({ count: 999 }));
+  assert.equal(limited.status, 429);
+});
+
+test('photo analysis returns server-computed totals from the model response', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    assert.match(String(url), /generativelanguage\.googleapis\.com/);
+    assert.equal(options.headers['x-goog-api-key'], 'test-key');
+    return new Response(JSON.stringify({
+      candidates: [{ content: { parts: [{ text: JSON.stringify({
+        dish: 'Steamed rice',
+        confidence: 0.9,
+        components: [{ name: 'Rice', share: 1, kcal_per_100g: 130, protein_per_100g: 2.7, carbs_per_100g: 28, fat_per_100g: 0.3 }]
+      }) }] } }]
+    }), { status: 200 });
+  };
+  try {
+    const response = await worker.fetch(foodRequest({ image: 'AAAA', mimeType: 'image/jpeg', grams: 200, state: 'cooked' }), foodEnv());
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.equal(result.dish, 'Steamed rice');
+    assert.equal(result.totals.kcal, 260);
+    assert.equal(result.totals.carbs, 56);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('photo analysis maps Gemini quota errors to a friendly busy response', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('{}', { status: 429 });
+  try {
+    const response = await worker.fetch(foodRequest({ image: 'AAAA', mimeType: 'image/jpeg', grams: 100 }), foodEnv());
+    assert.equal(response.status, 503);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

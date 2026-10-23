@@ -456,11 +456,9 @@ async function handleRedeemAccessCode(request, env) {
   return jsonResponse({ accessToken }, 200, request.headers.get('Origin'), env);
 }
 
-async function handleAccessStatus(request, env) {
+async function findPaidAccess(request, env) {
   const token = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
-  if (!token || token.length > 128) {
-    return jsonResponse({ active: false }, 401, request.headers.get('Origin'), env);
-  }
+  if (!token || token.length > 128) return null;
   const tokenHash = await sha256Hex(token);
   const order = await env.PAYMENTS_DB.prepare(`
     SELECT orders.id
@@ -470,7 +468,187 @@ async function handleAccessStatus(request, env) {
     WHERE access_tokens.token_hash = ?1 AND orders.status = 'paid'
     LIMIT 1
   `).bind(tokenHash).first();
-  return jsonResponse({ active: Boolean(order) }, 200, request.headers.get('Origin'), env);
+  return order ? { tokenHash } : null;
+}
+
+async function handleAccessStatus(request, env) {
+  const hasToken = Boolean(request.headers.get('Authorization'));
+  const access = await findPaidAccess(request, env);
+  const status = access ? 200 : (hasToken ? 200 : 401);
+  return jsonResponse({ active: Boolean(access) }, status, request.headers.get('Origin'), env);
+}
+
+const FOOD_PHOTO_MAX_BASE64 = 1_400_000;
+const FOOD_PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const FOOD_PHOTO_DAY_MS = 24 * 60 * 60 * 1000;
+const MACRO_FIELDS = ['kcal', 'protein', 'carbs', 'fat'];
+
+const FOOD_PROMPT = `You are a nutrition analyst for a Filipino calorie-tracking app.
+Identify the food in the photo and break it into its main ingredients/components.
+For each component give its share of the total food weight (shares must add up to about 1)
+and typical nutrition values per 100 g in the state shown (cooked or raw as stated below).
+Prefer Philippine food composition values for local dishes (adobo, sinigang, pancit, rice, etc.).
+Do not multiply by the portion weight; only give per-100 g values.
+If the photo does not contain food, return an empty components list and confidence 0.`;
+
+const FOOD_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    dish: { type: 'STRING' },
+    confidence: { type: 'NUMBER' },
+    components: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          name: { type: 'STRING' },
+          share: { type: 'NUMBER' },
+          kcal_per_100g: { type: 'NUMBER' },
+          protein_per_100g: { type: 'NUMBER' },
+          carbs_per_100g: { type: 'NUMBER' },
+          fat_per_100g: { type: 'NUMBER' }
+        },
+        required: ['name', 'share', 'kcal_per_100g', 'protein_per_100g', 'carbs_per_100g', 'fat_per_100g']
+      }
+    }
+  },
+  required: ['dish', 'confidence', 'components']
+};
+
+function clampNumber(value, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return Math.min(max, Math.max(min, number));
+}
+
+function computeFoodNutrition(analysis, grams) {
+  const rawComponents = Array.isArray(analysis?.components) ? analysis.components.slice(0, 12) : [];
+  const components = [];
+  for (const item of rawComponents) {
+    const share = clampNumber(item?.share, 0, 1);
+    const per100 = {
+      kcal: clampNumber(item?.kcal_per_100g, 0, 900),
+      protein: clampNumber(item?.protein_per_100g, 0, 100),
+      carbs: clampNumber(item?.carbs_per_100g, 0, 100),
+      fat: clampNumber(item?.fat_per_100g, 0, 100)
+    };
+    if (!share || MACRO_FIELDS.some(field => per100[field] === null)) continue;
+    components.push({
+      name: String(item.name || 'Food').slice(0, 80),
+      share,
+      per100
+    });
+  }
+  const shareTotal = components.reduce((sum, item) => sum + item.share, 0);
+  if (!components.length || shareTotal <= 0) return null;
+
+  const blended = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+  for (const item of components) {
+    for (const field of MACRO_FIELDS) blended[field] += (item.share / shareTotal) * item.per100[field];
+  }
+  const factor = grams / 100;
+  const totals = {
+    kcal: Math.round(blended.kcal * factor),
+    protein: Math.round(blended.protein * factor * 10) / 10,
+    carbs: Math.round(blended.carbs * factor * 10) / 10,
+    fat: Math.round(blended.fat * factor * 10) / 10
+  };
+  const atwater = blended.protein * 4 + blended.carbs * 4 + blended.fat * 9;
+  const consistent = blended.kcal === 0
+    ? atwater < 20
+    : Math.abs(atwater - blended.kcal) / blended.kcal <= 0.35;
+  return {
+    totals,
+    per100g: {
+      kcal: Math.round(blended.kcal),
+      protein: Math.round(blended.protein * 10) / 10,
+      carbs: Math.round(blended.carbs * 10) / 10,
+      fat: Math.round(blended.fat * 10) / 10
+    },
+    components: components.map(item => ({ name: item.name, share: Math.round((item.share / shareTotal) * 100) / 100 })),
+    consistent
+  };
+}
+
+async function callGemini(env, image, mimeType, grams, state, extraFat) {
+  const model = /^[a-z0-9.\-]{3,60}$/.test(env.GEMINI_MODEL || '') ? env.GEMINI_MODEL : 'gemini-3.1-flash-lite';
+  const context = `The user weighed this portion at ${grams} g. The food is ${state === 'raw' ? 'raw' : state === 'cooked' ? 'cooked' : 'in the state shown'}.` +
+    (extraFat ? ' Oil, butter or sauce was added during cooking; include it in the values.' : '');
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `${FOOD_PROMPT}\n${context}` }, { inline_data: { mime_type: mimeType, data: image } }] }],
+        generationConfig: { responseMimeType: 'application/json', responseSchema: FOOD_SCHEMA, temperature: 0.2 }
+      }),
+      signal: AbortSignal.timeout(25000)
+    }
+  );
+  if (response.status === 429) return { quota: true };
+  if (!response.ok) throw new Error(`Gemini request failed (${response.status})`);
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  try {
+    return { analysis: JSON.parse(text) };
+  } catch {
+    return { analysis: null };
+  }
+}
+
+async function handleAnalyzeFood(request, env) {
+  const origin = request.headers.get('Origin');
+  if (!env.GEMINI_API_KEY) {
+    return jsonResponse({ error: 'photo analysis is not configured' }, 503, origin, env);
+  }
+  const access = await findPaidAccess(request, env);
+  if (!access) {
+    return jsonResponse({ error: 'photo analysis is a lifetime-access feature' }, 403, origin, env);
+  }
+  const body = await readJson(request, FOOD_PHOTO_MAX_BASE64 + 4096);
+  if (!body) return jsonResponse({ error: 'invalid or oversized request' }, 400, origin, env);
+
+  const grams = clampNumber(body.grams, 1, 5000);
+  const image = typeof body.image === 'string' ? body.image : '';
+  if (grams === null || Number(body.grams) <= 0 ||
+      !FOOD_PHOTO_MIME_TYPES.includes(body.mimeType) ||
+      !image || image.length > FOOD_PHOTO_MAX_BASE64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(image)) {
+    return jsonResponse({ error: 'a photo and a weight in grams are required' }, 400, origin, env);
+  }
+  const state = ['cooked', 'raw', 'unknown'].includes(body.state) ? body.state : 'unknown';
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const dailyCap = Number(env.GEMINI_DAILY_CAP) > 0 ? Number(env.GEMINI_DAILY_CAP) : 800;
+  if (!await checkRateLimit(env.PAYMENTS_DB, `food-token:${access.tokenHash}`, 40, FOOD_PHOTO_DAY_MS) ||
+      !await checkRateLimit(env.PAYMENTS_DB, `food-ip:${await sha256Hex(ip)}`, 60, FOOD_PHOTO_DAY_MS)) {
+    return jsonResponse({ error: 'daily photo limit reached; try again tomorrow' }, 429, origin, env);
+  }
+  if (!await checkRateLimit(env.PAYMENTS_DB, 'food-global', dailyCap, FOOD_PHOTO_DAY_MS)) {
+    return jsonResponse({ error: 'photo analysis is busy; try again later' }, 503, origin, env);
+  }
+
+  let result;
+  try {
+    result = await callGemini(env, image, body.mimeType, grams, state, body.extraFat === true);
+  } catch (error) {
+    console.error('Food analysis failed:', error.message);
+    return jsonResponse({ error: 'photo analysis is unavailable right now' }, 502, origin, env);
+  }
+  if (result.quota) {
+    return jsonResponse({ error: 'photo analysis is busy; try again later' }, 503, origin, env);
+  }
+  const nutrition = computeFoodNutrition(result.analysis, grams);
+  if (!nutrition) {
+    return jsonResponse({ error: 'could not recognise food in this photo; try a clearer shot' }, 422, origin, env);
+  }
+  const confidence = clampNumber(result.analysis.confidence, 0, 1) ?? 0;
+  return jsonResponse({
+    dish: String(result.analysis.dish || 'Food').slice(0, 120),
+    confidence,
+    grams,
+    ...nutrition
+  }, 200, origin, env);
 }
 
 async function handleWebhook(request, env) {
@@ -585,11 +763,13 @@ async function handleRequest(request, env) {
   if (request.method === 'POST' && url.pathname === '/api/access/send-code') return handleSendAccessCode(request, env);
   if (request.method === 'POST' && url.pathname === '/api/access/redeem-code') return handleRedeemAccessCode(request, env);
   if (request.method === 'GET' && url.pathname === '/api/access/status') return handleAccessStatus(request, env);
+  if (request.method === 'POST' && url.pathname === '/api/analyze-food') return handleAnalyzeFood(request, env);
   return jsonResponse({ error: 'not found' }, 404, origin, env);
 }
 
 export {
   checkRateLimit,
+  computeFoodNutrition,
   getWebhookEvent,
   handleRequest,
   isValidEmailRelayURL,

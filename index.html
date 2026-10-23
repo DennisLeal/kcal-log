@@ -1004,12 +1004,31 @@ select:focus {
 .backup-status{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--ink-soft)}
 .backup-status[hidden]{display:none}
 
+.photo-card{background:var(--paper-dim);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.photo-card .add-title{margin-bottom:6px}
+.photo-note{font-size:13px;color:var(--ink-soft);margin:0 0 10px;line-height:1.45}
+.photo-card .row{margin-bottom:10px}
+.photo-btn{display:block;width:100%;padding:13px;border-radius:10px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);font:inherit;font-weight:600;cursor:pointer}
+.photo-btn:disabled{opacity:.55;cursor:default}
+.photo-btn.secondary{background:transparent;color:var(--ink);margin-top:8px}
+.photo-opts{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);margin:8px 0}
+.photo-opts label{display:flex;align-items:center;gap:6px}
+.photo-preview{display:none;width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:10px}
+.photo-status{font-size:13px;margin-top:8px;color:var(--ink-soft)}
+.photo-status.error{color:var(--rust)}
+.photo-result{display:none;margin-top:10px;padding:12px;background:var(--paper);border:1px solid var(--line);border-radius:10px;font-size:14px}
+.photo-result strong{display:block;font-size:16px;margin-bottom:4px}
+.macro-chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.macro-chip{padding:4px 10px;border-radius:999px;background:var(--paper-dim);border:1px solid var(--line);font-size:13px}
+.photo-lock{border-style:dashed}
+.photo-lock ul{margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.6}
+.entry-macros{font-size:12px;color:var(--ink-soft);margin-top:2px}
 </style>
 </head>
 <body>
 <div class="app">
 
-<div id="trialBanner"><span id="trialText">Trial</span><button id="buyFromTrialBtn" class="trial-buy-button" type="button">Get lifetime access · ₱79</button></div>
+<div id="trialBanner"><span id="trialText">Trial</span><button id="buyFromTrialBtn" class="trial-buy-button" type="button">Get lifetime access · ₱79 · unlock photo calories</button></div>
 <section id="installCard" class="install-card" aria-labelledby="installTitle" hidden>
   <button id="dismissInstallBtn" class="install-dismiss" type="button" aria-label="Dismiss install instructions">×</button>
   <h2 id="installTitle">Keep Kcal Log on your Home Screen</h2>
@@ -1017,7 +1036,7 @@ select:focus {
   <button id="installBtn" type="button" hidden>Install Kcal Log</button>
   <p id="installStatus" class="install-status" role="status" aria-live="polite" hidden></p>
 </section>
-<div id="trialLock"><div class="card"><button id="closePurchaseBtn" class="trial-backup-btn" type="button" hidden>Back to my log</button><h2 id="purchaseTitle">Lifetime access</h2><p>Pay once (₱79) for lifetime access. Your trial entries stay saved on this device.</p><p>Payment is by QR Ph only. Scan the QR code with any app that supports QR Ph.</p><p>Use an email address you can access. It will be used to recover your purchase, not your food logs.</p><label for="purchaseEmail">Purchase or recovery email</label><input id="purchaseEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com"><p><a href="./privacy.html">Read the privacy notice</a></p><button id="buyLifetimeBtn" type="button">Continue to secure checkout</button><button id="sendAccessCodeBtn" class="trial-backup-btn" type="button">Restore lifetime access by email</button><label for="accessCode">One-time email code</label><input id="accessCode" type="text" inputmode="text" autocomplete="one-time-code" maxlength="24" placeholder="24-character code"><button id="redeemAccessCodeBtn" type="button">Unlock lifetime access</button><button id="trialBackupBtn" class="trial-backup-btn" type="button">Download a backup of my trial data</button><p id="checkoutStatus" class="checkout-status" role="status" aria-live="polite" hidden></p></div></div>
+<div id="trialLock"><div class="card"><button id="closePurchaseBtn" class="trial-backup-btn" type="button" hidden>Back to my log</button><h2 id="purchaseTitle">Lifetime access</h2><p>Pay once (₱79) for lifetime access. Your trial entries stay saved on this device.</p><p><strong>📸 Lifetime unlocks Snap &amp; Weigh:</strong> weigh your meal, snap a photo, and get calories, protein, carbs and fat automatically. Not available during the trial.</p><p>Payment is by QR Ph only. Scan the QR code with any app that supports QR Ph.</p><p>Use an email address you can access. It will be used to recover your purchase, not your food logs.</p><label for="purchaseEmail">Purchase or recovery email</label><input id="purchaseEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com"><p><a href="./privacy.html">Read the privacy notice</a></p><button id="buyLifetimeBtn" type="button">Continue to secure checkout</button><button id="sendAccessCodeBtn" class="trial-backup-btn" type="button">Restore lifetime access by email</button><label for="accessCode">One-time email code</label><input id="accessCode" type="text" inputmode="text" autocomplete="one-time-code" maxlength="24" placeholder="24-character code"><button id="redeemAccessCodeBtn" type="button">Unlock lifetime access</button><button id="trialBackupBtn" class="trial-backup-btn" type="button">Download a backup of my trial data</button><p id="checkoutStatus" class="checkout-status" role="status" aria-live="polite" hidden></p></div></div>
 
   <div class="eyebrow">Food log</div>
   <h1>Kcal Tracker</h1>
@@ -1072,6 +1091,42 @@ select:focus {
       <button class="icon-btn" id="nextDay" aria-label="Next day">
         ›
       </button>
+    </div>
+    <!-- PHOTO CALORIE ANALYSIS (lifetime access only) -->
+    <div class="photo-card photo-lock" id="photoLockCard" hidden>
+      <div class="add-title">📸 Snap &amp; Weigh — Lifetime feature</div>
+      <p class="photo-note">Take a photo of your meal, enter its weight from your scale, and get calories, protein, carbs and fat in seconds — no typing, no searching.</p>
+      <ul>
+        <li>Works with Filipino dishes and everyday food</li>
+        <li>Calories + protein, carbs and fat per meal</li>
+        <li>Uses your weighed portion for accurate numbers</li>
+      </ul>
+      <button type="button" class="photo-btn" id="photoUnlockBtn">Unlock with lifetime access · ₱79</button>
+    </div>
+    <div class="photo-card" id="photoCard" hidden>
+      <div class="add-title">📸 Snap &amp; Weigh</div>
+      <p class="photo-note">Weigh your food, take a photo, and we'll estimate calories and macros. Your photo is sent securely for analysis and is not saved.</p>
+      <img class="photo-preview" id="photoPreview" alt="Preview of your meal photo">
+      <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+      <div class="row">
+        <div>
+          <span class="field-label">Weight (grams)</span>
+          <input type="number" id="photoGrams" placeholder="e.g. 250" min="1" max="5000" step="1" inputmode="decimal">
+        </div>
+      </div>
+      <div class="photo-opts">
+        <label><input type="radio" name="photoState" value="cooked" checked> Cooked</label>
+        <label><input type="radio" name="photoState" value="raw"> Raw</label>
+        <label><input type="checkbox" id="photoExtraFat"> Oil / sauce added</label>
+      </div>
+      <button type="button" class="photo-btn" id="photoTakeBtn">Take or choose photo</button>
+      <div class="photo-status" id="photoStatus" role="status" aria-live="polite"></div>
+      <div class="photo-result" id="photoResult">
+        <strong id="photoDish"></strong>
+        <div class="macro-chips" id="photoMacros"></div>
+        <div id="photoWarn" class="photo-status"></div>
+        <button type="button" class="photo-btn" id="photoUseBtn">Use these values</button>
+      </div>
     </div>
     <!-- ADD ENTRY -->
     <div class="add-card">
@@ -1297,6 +1352,7 @@ select:focus {
   const PROFILE_KEY = 'kcal-profile';
   /* Free key from https://fdc.nal.usda.gov/api-key-signup.html — paste yours below. */
   const USDA_API_KEY = 'REPLACE_WITH_YOUR_USDA_API_KEY';
+  let pendingMacros = null;
   let allEntries = {};
   let dailyGoal = null;
   let profile = null;
@@ -1521,6 +1577,10 @@ select:focus {
       kcal: Math.round(kcal),
       notes: notes
     };
+    if (pendingMacros) {
+      Object.assign(entry, pendingMacros);
+      pendingMacros = null;
+    }
     if (!allEntries[selectedDate]) {
       allEntries[selectedDate] = [];
     }
@@ -1630,6 +1690,8 @@ select:focus {
           !Number.isInteger(entry.min) || entry.min < 0 || entry.min > 59 ||
           !['AM', 'PM'].includes(entry.ampm) ||
           !Number.isFinite(entry.kcal) || entry.kcal < 0 ||
+          ['protein', 'carbs', 'fat', 'grams'].some(key =>
+            entry[key] !== undefined && (!Number.isFinite(entry[key]) || entry[key] < 0)) ||
           (entry.notes !== undefined && (typeof entry.notes !== 'string' || entry.notes.length > 2000))) {
           throw new Error('The backup contains an invalid food entry. Nothing was restored.');
         }
@@ -1906,6 +1968,7 @@ select:focus {
         <div class="entry-main">
           <div class="entry-food">${escapeHtml(e.food)}</div>
           ${e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ''}
+          ${macroLine(e) ? `<div class="entry-macros">${macroLine(e)}</div>` : ''}
           <div class="entry-running">running total: ${running} kcal</div>
         </div>
         <div class="entry-kcal">${Number(e.kcal) || 0}</div>
@@ -1928,6 +1991,15 @@ select:focus {
         summary.classList.add('over');
         summaryHtml += `<span class="day-summary-diff">${Math.abs(diff)} kcal over</span>`;
       }
+    }
+    const macroTotals = list.reduce((sum, e) => {
+      sum.protein += Number(e.protein) || 0;
+      sum.carbs += Number(e.carbs) || 0;
+      sum.fat += Number(e.fat) || 0;
+      return sum;
+    }, { protein: 0, carbs: 0, fat: 0 });
+    if (macroTotals.protein || macroTotals.carbs || macroTotals.fat) {
+      summaryHtml += `<span class="day-summary-diff">P ${Math.round(macroTotals.protein)}g · C ${Math.round(macroTotals.carbs)}g · F ${Math.round(macroTotals.fat)}g (photo entries)</span>`;
     }
     summary.innerHTML = summaryHtml;
     container.appendChild(summary);
@@ -2623,6 +2695,7 @@ function unlockLifetimeAccess(){
  const buy=document.getElementById('buyFromTrialBtn');
  if(buy) buy.hidden=true;
  document.getElementById('trialLock').style.display='none';
+ updatePhotoCard();
 }
 function openPurchasePanel(forceExpired=false){
  const install=Number(localStorage.getItem(TRIAL_START_KEY));
@@ -2668,6 +2741,7 @@ async function trialInit(){
  if(banner) banner.textContent=remaining>0?`Trial: ${remaining} day${remaining===1?'':'s'} left`:'Trial expired';
  if(remaining<=0) openPurchasePanel(true);
  else document.getElementById('closePurchaseBtn').hidden=false;
+ updatePhotoCard();
 }
 async function postAccessRequest(path,body){
  let apiUrl;
@@ -2776,6 +2850,125 @@ function configureLifetimeCheckout(){
     window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
   }
 }
+function updatePhotoCard(){
+ const unlocked=Boolean(localStorage.getItem(LIFETIME_ACCESS_KEY));
+ document.getElementById('photoCard').hidden=!unlocked;
+ document.getElementById('photoLockCard').hidden=unlocked;
+}
+function macroLine(e){
+ const parts=[];
+ if(Number(e.protein)>0) parts.push('P '+Math.round(Number(e.protein))+'g');
+ if(Number(e.carbs)>0) parts.push('C '+Math.round(Number(e.carbs))+'g');
+ if(Number(e.fat)>0) parts.push('F '+Math.round(Number(e.fat))+'g');
+ if(Number(e.grams)>0) parts.push(Math.round(Number(e.grams))+' g portion');
+ return parts.join(' · ');
+}
+function resizePhoto(file,maxSide=1024){
+ return createImageBitmap(file,{imageOrientation:'from-image'}).then(bitmap=>{
+   const scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+   const canvas=document.createElement('canvas');
+   canvas.width=Math.round(bitmap.width*scale);
+   canvas.height=Math.round(bitmap.height*scale);
+   canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
+   bitmap.close&&bitmap.close();
+   const dataUrl=canvas.toDataURL('image/jpeg',0.8);
+   return {dataUrl,base64:dataUrl.split(',')[1]};
+ });
+}
+function configurePhotoAnalysis(){
+ const gramsInput=document.getElementById('photoGrams');
+ const fileInput=document.getElementById('photoInput');
+ const takeBtn=document.getElementById('photoTakeBtn');
+ const useBtn=document.getElementById('photoUseBtn');
+ const statusEl=document.getElementById('photoStatus');
+ const resultEl=document.getElementById('photoResult');
+ const preview=document.getElementById('photoPreview');
+ let lastResult=null;
+ const setStatus=(message,isError)=>{
+   statusEl.textContent=message;
+   statusEl.className='photo-status'+(isError?' error':'');
+ };
+ document.getElementById('photoUnlockBtn').addEventListener('click',()=>openPurchasePanel(false));
+ takeBtn.addEventListener('click',()=>{
+   const grams=Number(gramsInput.value);
+   if(!Number.isFinite(grams)||grams<=0||grams>5000){
+     flash(gramsInput);
+     setStatus('Enter the weight of your food in grams first.',true);
+     return;
+   }
+   fileInput.value='';
+   fileInput.click();
+ });
+ fileInput.addEventListener('change',async()=>{
+   const file=fileInput.files&&fileInput.files[0];
+   if(!file) return;
+   const token=localStorage.getItem(LIFETIME_ACCESS_KEY);
+   if(!token){updatePhotoCard();return;}
+   const grams=Number(gramsInput.value);
+   resultEl.style.display='none';
+   lastResult=null;
+   takeBtn.disabled=true;
+   setStatus('Analysing your meal…',false);
+   try{
+     const photo=await resizePhoto(file);
+     preview.src=photo.dataUrl;
+     preview.style.display='block';
+     const state=document.querySelector('input[name="photoState"]:checked').value;
+     const response=await fetch(`${new URL(ACCESS_API_BASE_URL).origin}/api/analyze-food`,{
+       method:'POST',
+       headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},
+       body:JSON.stringify({
+         image:photo.base64,
+         mimeType:'image/jpeg',
+         grams,
+         state,
+         extraFat:document.getElementById('photoExtraFat').checked
+       }),
+       signal:AbortSignal.timeout(40000)
+     });
+     const result=await response.json().catch(()=>({}));
+     if(response.status===403){updatePhotoCard();throw new Error('Photo analysis needs an active lifetime access.');}
+     if(!response.ok) throw new Error(result.error||'Could not analyse this photo. Try again.');
+     lastResult=result;
+     document.getElementById('photoDish').textContent=`${result.dish} · ${Math.round(result.grams)} g`;
+     const chips=document.getElementById('photoMacros');
+     chips.textContent='';
+     [['🔥',Math.round(result.totals.kcal)+' kcal'],['P',result.totals.protein+' g'],['C',result.totals.carbs+' g'],['F',result.totals.fat+' g']]
+       .forEach(([icon,text])=>{
+         const chip=document.createElement('span');
+         chip.className='macro-chip';
+         chip.textContent=`${icon} ${text}`;
+         chips.appendChild(chip);
+       });
+     const warn=document.getElementById('photoWarn');
+     warn.textContent=(result.confidence<0.5||!result.consistent)
+       ?'Low confidence — please check the numbers before saving.'
+       :'This is an estimate. You can edit the values before adding to your log.';
+     resultEl.style.display='block';
+     setStatus('',false);
+   }catch(error){
+     console.error('Photo analysis failed:',error);
+     setStatus(error.name==='TimeoutError'?'Analysis took too long. Check your connection and try again.':(error.message||'Could not analyse this photo.'),true);
+   }finally{
+     takeBtn.disabled=false;
+   }
+ });
+ useBtn.addEventListener('click',()=>{
+   if(!lastResult) return;
+   document.getElementById('foodName').value=`${lastResult.dish} (${Math.round(lastResult.grams)}g)`;
+   document.getElementById('kcalInput').value=Math.round(lastResult.totals.kcal);
+   pendingMacros={
+     protein:lastResult.totals.protein,
+     carbs:lastResult.totals.carbs,
+     fat:lastResult.totals.fat,
+     grams:lastResult.grams,
+     source:'photo'
+   };
+   document.getElementById('kcalInput').focus();
+   setStatus('Values added below. Tap “Add to log” to save.',false);
+ });
+}
+configurePhotoAnalysis();
 configureLifetimeCheckout();
 trialInit();
 

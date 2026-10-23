@@ -21,7 +21,7 @@
 <body>
 <main>
   <h1>Kcal Log privacy notice</h1>
-  <p class="date">Last updated: October 22, 2026</p>
+  <p class="date">Last updated: October 24, 2026</p>
   <p>Kcal Log is an installable web app. Your calorie entries and profile are stored in your browser on your device. Kcal Log does not send those logs to its payment backend.</p>
 
   <h2>Information stored on your device</h2>
@@ -39,6 +39,9 @@
     <li>To maintain lifetime purchase records and help resolve payment or access disputes.</li>
   </ul>
   <p>Purchase records are kept for as long as needed to provide lifetime access, resolve disputes, and meet applicable recordkeeping obligations. Recovery codes are stored as hashes and expire after 10 minutes. Access tokens are stored as hashes on the server; your active token is stored in browser storage.</p>
+
+  <h2>Photo calorie analysis (lifetime access only)</h2>
+  <p>If you use the optional Snap &amp; Weigh feature, the photo you choose is resized in your browser and sent through the Kcal Log backend to Google's Gemini API, together with the weight you typed, to estimate calories and macros. Kcal Log does not store the photo or the result on its servers; the result is saved only in your device's log. The backend records only anonymous usage counters (hashed access token and IP) to enforce daily limits. Because we use Google's free tier, Google may use submitted photos to improve its products under its own terms. Avoid photographing people, documents or anything private. This feature is optional and no photo is sent unless you tap to take or choose one.</p>
 
   <h2>Hosting and security</h2>
   <p>The app is hosted as a static site. Cloudflare hosts the payment API and D1 purchase database, PayMongo processes checkout, and Google Apps Script/Gmail sends transactional email through the app owner's account. These providers may process technical request information under their own privacy policies. Google may apply daily recipient quotas, and delivery can be delayed or unavailable if quotas or service limits are reached. The backend uses HTTPS, limits recovery attempts, and does not store meal logs.</p>
