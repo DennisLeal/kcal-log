@@ -97,105 +97,196 @@ h1 {
 /* =========================================================
    SCALE / DAILY READOUT
    ========================================================= */
-.scale {
-  background: var(--lcd-bg);
-  border-radius: 18px;
-  padding: 18px 20px 16px;
-  box-shadow:
-    0 6px 18px rgba(30,38,34,0.25),
-    inset 0 0 0 1px rgba(255,255,255,0.04);
-  position: relative;
-  overflow: hidden;
+.goal-card {
+  --gc-accent: #3E7C5F;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 8px 24px rgba(43,38,32,0.08);
 }
-.scale::before {
-  content: "";
-  position: absolute;
-  top: -30%;
-  left: -10%;
-  width: 60%;
-  height: 160%;
-  background: linear-gradient(
-    120deg,
-    rgba(255,255,255,0.05),
-    transparent 60%
-  );
-  pointer-events: none;
-}
-.scale-row {
+.goal-card.near { --gc-accent: var(--mustard); }
+.goal-card.over { --gc-accent: var(--rust); }
+.gc-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
+  margin-bottom: 14px;
 }
-.scale-label {
-  font-size: 10px;
-  letter-spacing: 0.16em;
+.gc-title {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--lcd-digit-dim);
-  font-weight: 600;
-}
-.scale-date {
-  font-size: 11px;
-  color: var(--lcd-digit-dim);
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-}
-.scale-readout {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 52px;
+  color: var(--ink-soft);
   font-weight: 700;
-  color: var(--lcd-digit);
-  letter-spacing: 0.02em;
-  line-height: 1.05;
-  margin: 2px 0 0;
-  text-shadow: 0 0 14px rgba(143,227,192,0.35);
-  transition: color 0.25s ease;
 }
-.scale-readout.over {
-  color: #E3A98F;
-  text-shadow: 0 0 14px rgba(227,169,143,0.35);
-}
-.scale-unit {
-  font-size: 15px;
-  color: var(--lcd-digit-dim);
+.gc-date {
+  font-size: 13px;
   font-weight: 600;
-  margin-left: 6px;
+  color: var(--ink);
 }
-.scale-sub {
+.gc-body {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.gc-ring {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  flex-shrink: 0;
+}
+.gc-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.gc-track,
+.gc-fill {
+  fill: none;
+  stroke-width: 11;
+}
+.gc-track { stroke: var(--paper-dim); }
+.gc-fill {
+  stroke: var(--gc-accent);
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 0.6s ease, stroke 0.3s ease;
+}
+.gc-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 18px;
+}
+.gc-center-num {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.gc-center-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  line-height: 1.25;
+  margin-top: 2px;
+}
+.goal-card.over .gc-center-num { color: var(--over-ink); }
+.gc-stats {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.gc-stats > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--paper-dim);
+}
+.gc-stats > div:last-child { border-bottom: none; padding-bottom: 0; }
+.gc-stats dt {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.gc-stats dd {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.gc-stats dd small {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-left: 3px;
+}
+.gc-stats .gc-remain dd { color: var(--gc-accent); }
+.goal-card.over .gc-remain dd { color: var(--over-ink); }
+.gc-macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+.gc-macros span {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.gc-macros span b { color: var(--ink-soft); font-weight: 600; margin-right: 3px; }
+.gc-foot {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 11px;
-  color: var(--lcd-digit-dim);
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--paper-dim);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.gc-target-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
 }
 .goal-input {
-  background: transparent;
-  border: none;
-  border-bottom: 1px dashed var(--lcd-digit-dim);
-  color: var(--lcd-digit-dim);
-  font-family: inherit;
-  font-size: 11px;
-  width: 54px;
+  width: 84px;
+  min-height: 40px;
+  font-size: 15px;
+  font-weight: 700;
   text-align: right;
-  padding: 0 0 1px;
+  padding: 6px 10px;
 }
-.goal-input:focus {
-  outline: none;
-  color: var(--lcd-digit);
-  border-color: var(--lcd-digit);
+.gc-note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.gc-empty-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--mustard-dark);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }
 .save-status {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 10px;
-  color: var(--lcd-digit-dim);
+  font-size: 11px;
+  color: var(--ink-soft);
   transition: color 0.2s ease;
 }
 .save-status.ok {
-  color: var(--lcd-digit);
+  color: var(--ok-ink);
 }
 .save-status.warn {
-  color: #E3A98F;
+  color: var(--over-ink);
 }
 /* =========================================================
    GOAL WARNING BANNER
@@ -810,6 +901,103 @@ select:focus {
   color: var(--ink-soft);
   margin: -6px 0 14px 2px;
 }
+
+/* === Polish: consistency, accessibility, responsive === */
+.app { max-width: 520px; }
+@media (min-width: 768px) {
+  .app { max-width: 640px; padding-top: 28px; }
+  .gc-ring { width: 152px; height: 152px; }
+  .gc-center-num { font-size: 32px; }
+}
+.main-tabs button,
+.sum-tabs button,
+.icon-btn,
+.add-btn { min-height: 44px; }
+.main-tabs {
+  background: var(--paper-dim);
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+.main-tabs button {
+  background: transparent;
+  border-color: transparent;
+  font-size: 13px;
+  transition: background-color .2s ease, color .2s ease, transform .1s ease;
+}
+.main-tabs button.active {
+  box-shadow: 0 2px 8px rgba(43,38,32,.2);
+}
+.icon-btn { width: 44px; height: 44px; }
+.add-card,
+.sum-card {
+  box-shadow: 0 4px 16px rgba(43,38,32,.06);
+  border-radius: 18px;
+}
+.add-btn {
+  border-radius: 12px;
+  transition: background-color .2s ease, transform .1s ease;
+}
+.add-btn:active,
+.main-tabs button:active,
+.icon-btn:active { transform: scale(.98); }
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--mustard);
+  outline-offset: 2px;
+}
+.entries-title { font-size: 12px; color: var(--ink-soft); }
+.entry {
+  align-items: center;
+  padding: 12px 0;
+  animation: entry-in .25s ease;
+}
+.entry-time { width: 56px; font-size: 12px; }
+.entry-food { font-size: 15px; }
+.entry-running {
+  color: var(--ink-soft);
+  opacity: 1;
+  font-size: 11px;
+}
+.entry-kcal {
+  font-size: 17px;
+  color: var(--ink);
+  background: var(--paper-dim);
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+.entry-del {
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 10px;
+  font-size: 20px;
+  padding: 0;
+}
+.entry-del:active { background: var(--over-bg); }
+.empty { border-radius: 16px; line-height: 1.5; }
+.day-summary { border-radius: 14px; }
+.day-summary-diff { color: #B9C9AE; }
+.time-picker { flex-wrap: wrap; row-gap: 8px; }
+.step-btn { width: 32px; height: 32px; }
+.ampm-toggle button { min-height: 40px; padding: 9px 12px; }
+@keyframes entry-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+@media (max-width: 360px) {
+  .gc-body { flex-direction: column; align-items: stretch; }
+  .gc-ring { align-self: center; }
+}
 
 /* === Trial Mode Overlay === */
 #trialBanner{background:#FFF4E5;border:1px solid #F3D19C;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
@@ -888,34 +1076,59 @@ select:focus {
        ===================================================== -->
   <div id="logView">
     <!-- DAILY SCALE -->
-    <div class="scale">
-      <div class="scale-row">
-        <span class="scale-label">Selected day's total</span>
-        <span class="scale-date" id="scaleDate">--</span>
+    <section class="goal-card" id="goalCard" aria-labelledby="goalCardTitle">
+      <div class="gc-head">
+        <h2 class="gc-title" id="goalCardTitle">Daily calories</h2>
+        <span class="gc-date" id="scaleDate">--</span>
       </div>
-      <div class="scale-readout" id="totalReadout">
-        0<span class="scale-unit">kcal</span>
+      <div class="gc-body">
+        <div class="gc-ring" id="goalRing" role="progressbar" aria-label="Calories consumed compared with your daily target" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+            <circle class="gc-track" cx="60" cy="60" r="52" pathLength="100"></circle>
+            <circle class="gc-fill" id="goalRingFill" cx="60" cy="60" r="52" pathLength="100"></circle>
+          </svg>
+          <div class="gc-center">
+            <span class="gc-center-num" id="ringNum">0</span>
+            <span class="gc-center-label" id="ringLabel">kcal consumed</span>
+          </div>
+        </div>
+        <dl class="gc-stats">
+          <div>
+            <dt>Target</dt>
+            <dd id="statTarget">—</dd>
+          </div>
+          <div>
+            <dt>Consumed</dt>
+            <dd id="totalReadout">0<small>kcal</small></dd>
+          </div>
+          <div class="gc-remain">
+            <dt id="statRemainLabel">Remaining</dt>
+            <dd id="statRemain">—</dd>
+          </div>
+        </dl>
       </div>
-      <div class="scale-sub">
-        <span id="entryCount">0 entries</span>
-        <span id="saveStatus" class="save-status"></span>
-        <span>
-          Goal
+      <div class="goal-warning" id="goalWarning" role="status">
+        <span class="gw-icon" id="goalWarningIcon" aria-hidden="true">⚠️</span>
+        <span id="goalWarningText"></span>
+      </div>
+      <div class="gc-macros" id="goalMacros" hidden></div>
+      <div class="gc-foot">
+        <span><span id="entryCount">0 entries</span> <span id="saveStatus" class="save-status" role="status"></span></span>
+        <label class="gc-target-label" for="goalInput">
+          Daily target
           <input
             type="number"
             id="goalInput"
             class="goal-input"
-            placeholder="—"
+            placeholder="kcal"
             min="0"
             step="1"
+            inputmode="numeric"
           >
-        </span>
+        </label>
       </div>
-      <div class="goal-warning" id="goalWarning">
-        <span class="gw-icon" id="goalWarningIcon">⚠️</span>
-        <span id="goalWarningText"></span>
-      </div>
-    </div>
+      <p class="gc-note">Remaining = target − consumed. This is your intake budget for the day, not calories burned or a measured deficit.</p>
+    </section>
     <!-- DATE NAVIGATION -->
     <div class="datebar">
       <button class="icon-btn" id="prevDay" aria-label="Previous day">
@@ -1707,29 +1920,125 @@ select:focus {
     return list.reduce((sum, e) => sum + (Number(e.kcal) || 0), 0);
   }
   /* =======================================================
-     GOAL WARNING BANNER
+     GOAL OVERVIEW (intake budget: target - consumed)
+     This is NOT a deficit. The app has no measured burn data.
      ======================================================= */
-  function updateGoalWarning(total) {
+  function goalOverview(total, goal) {
+    const consumed = Number.isFinite(Number(total)) ? Math.max(0, Number(total)) : 0;
+    const target = Number(goal);
+    if (goal === null || goal === undefined || !Number.isFinite(target) || target <= 0) {
+      return { hasGoal: false, consumed: consumed };
+    }
+    const pct = (consumed / target) * 100;
+    let state = 'ok';
+    if (consumed > target) state = 'over';
+    else if (consumed === target) state = 'reached';
+    else if (pct >= 90) state = 'near';
+    return {
+      hasGoal: true,
+      consumed: consumed,
+      target: target,
+      remaining: Math.max(0, target - consumed),
+      over: Math.max(0, consumed - target),
+      pct: pct,
+      barPct: Math.min(100, pct),
+      state: state
+    };
+  }
+  function renderGoalOverview(total, list) {
+    const o = goalOverview(total, dailyGoal);
+    const card = document.getElementById('goalCard');
+    const ring = document.getElementById('goalRing');
     const banner = document.getElementById('goalWarning');
     const icon = document.getElementById('goalWarningIcon');
     const text = document.getElementById('goalWarningText');
+    const num = document.getElementById('ringNum');
+    const label = document.getElementById('ringLabel');
+    const remainLabel = document.getElementById('statRemainLabel');
+    const remainEl = document.getElementById('statRemain');
+    const kcalUnit = (n) => n + '<small>kcal</small>';
+    document.getElementById('totalReadout').innerHTML = kcalUnit(o.consumed);
+    card.classList.remove('near', 'over');
     banner.classList.remove('near', 'over', 'ok', 'show');
-    if (dailyGoal === null || dailyGoal === undefined || !dailyGoal) {
-      return;
+    banner.textContent = '';
+    banner.appendChild(icon);
+    banner.appendChild(text);
+    if (!o.hasGoal) {
+      ring.setAttribute('aria-valuenow', '0');
+      ring.setAttribute('aria-valuetext', o.consumed + ' kcal consumed. No daily target set.');
+      document.getElementById('goalRingFill').style.strokeDashoffset = '100';
+      num.textContent = o.consumed;
+      label.textContent = 'kcal consumed';
+      document.getElementById('statTarget').textContent = '—';
+      remainLabel.textContent = 'Remaining';
+      remainEl.textContent = '—';
+      icon.textContent = '🎯';
+      text.textContent = '';
+      const lead = document.createTextNode('Set a daily target below to see what you have left. You can also calculate one in the ');
+      const link = document.createElement('button');
+      link.type = 'button';
+      link.className = 'gc-empty-link';
+      link.textContent = 'Profile tab';
+      link.addEventListener('click', () => activateTab('profile'));
+      text.appendChild(lead);
+      text.appendChild(link);
+      text.appendChild(document.createTextNode('.'));
+      banner.classList.add('ok', 'show');
+    } else {
+      ring.setAttribute('aria-valuenow', String(Math.round(o.barPct)));
+      document.getElementById('goalRingFill').style.strokeDashoffset = String(100 - o.barPct);
+      document.getElementById('statTarget').innerHTML = kcalUnit(o.target);
+      if (o.state === 'over') {
+        card.classList.add('over');
+        num.textContent = o.over;
+        label.textContent = 'kcal over target';
+        remainLabel.textContent = 'Over target';
+        remainEl.innerHTML = kcalUnit(o.over);
+        icon.textContent = o.pct >= 120 ? '🚨' : '🔴';
+        text.textContent = o.over + ' kcal over your ' + o.target + ' kcal target today.';
+        banner.classList.add('over', 'show');
+        ring.setAttribute('aria-valuetext', o.consumed + ' of ' + o.target + ' kcal. ' + o.over + ' kcal over target.');
+      } else if (o.state === 'reached') {
+        card.classList.add('near');
+        num.textContent = '0';
+        label.textContent = 'kcal left — target reached';
+        remainLabel.textContent = 'Remaining';
+        remainEl.innerHTML = kcalUnit(0);
+        icon.textContent = '✅';
+        text.textContent = 'You have reached your ' + o.target + ' kcal target for today.';
+        banner.classList.add('near', 'show');
+        ring.setAttribute('aria-valuetext', o.consumed + ' of ' + o.target + ' kcal. Target reached.');
+      } else {
+        if (o.state === 'near') {
+          card.classList.add('near');
+          icon.textContent = '⚠️';
+          text.textContent = 'Nearing your target — only ' + o.remaining + ' kcal left today.';
+          banner.classList.add('near', 'show');
+        }
+        num.textContent = o.remaining;
+        label.textContent = 'kcal left';
+        remainLabel.textContent = 'Remaining';
+        remainEl.innerHTML = kcalUnit(o.remaining);
+        ring.setAttribute('aria-valuetext', o.consumed + ' of ' + o.target + ' kcal. ' + o.remaining + ' kcal remaining.');
+      }
     }
-    const pct = total / dailyGoal;
-    if (total > dailyGoal) {
-      const over = total - dailyGoal;
-      banner.classList.add('over', 'show');
-      icon.textContent = pct >= 1.2 ? '🚨' : '🔴';
-      text.textContent = over + ' kcal over your ' + dailyGoal + ' kcal goal today.';
-    } else if (pct >= 0.9) {
-      const left = dailyGoal - total;
-      banner.classList.add('near', 'show');
-      icon.textContent = '⚠️';
-      text.textContent = 'Nearing your goal — only ' + left + ' kcal left today.';
+    const macros = list.reduce((sum, e) => {
+      sum.protein += Number(e.protein) || 0;
+      sum.carbs += Number(e.carbs) || 0;
+      sum.fat += Number(e.fat) || 0;
+      return sum;
+    }, { protein: 0, carbs: 0, fat: 0 });
+    const macroEl = document.getElementById('goalMacros');
+    if (macros.protein || macros.carbs || macros.fat) {
+      macroEl.innerHTML =
+        '<span><b>Protein</b>' + Math.round(macros.protein) + ' g</span>' +
+        '<span><b>Carbs</b>' + Math.round(macros.carbs) + ' g</span>' +
+        '<span><b>Fat</b>' + Math.round(macros.fat) + ' g</span>';
+      macroEl.hidden = false;
+    } else {
+      macroEl.hidden = true;
+      macroEl.textContent = '';
     }
-    /* Comfortably under goal: no banner needed, keeps things clean. */
   }
   /* =======================================================
      MAIN LOG RENDER
@@ -1741,14 +2050,7 @@ select:focus {
     goalInput.value = dailyGoal !== null ? dailyGoal : '';
     const list = (allEntries[selectedDate] || []).slice().sort((a, b) => sortKey(a) - sortKey(b));
     const total = list.reduce((sum, e) => sum + (Number(e.kcal) || 0), 0);
-    const readout = document.getElementById('totalReadout');
-    readout.innerHTML = total + '<span class="scale-unit">kcal</span>';
-    if (dailyGoal !== null && total > dailyGoal) {
-      readout.classList.add('over');
-    } else {
-      readout.classList.remove('over');
-    }
-    updateGoalWarning(total);
+    renderGoalOverview(total, list);
     document.getElementById('entryCount').textContent =
       list.length + (list.length === 1 ? ' entry' : ' entries');
     const container = document.getElementById('entryList');
@@ -1785,13 +2087,15 @@ select:focus {
       <span class="day-summary-label">Day total</span>
       <span class="day-summary-kcal">${total} kcal</span>
     `;
-    if (dailyGoal !== null) {
-      const diff = dailyGoal - total;
-      if (diff >= 0) {
-        summaryHtml += `<span class="day-summary-diff">${diff} kcal left</span>`;
-      } else {
+    const dayGoal = goalOverview(total, dailyGoal);
+    if (dayGoal.hasGoal) {
+      if (dayGoal.state === 'over') {
         summary.classList.add('over');
-        summaryHtml += `<span class="day-summary-diff">${Math.abs(diff)} kcal over</span>`;
+        summaryHtml += `<span class="day-summary-diff">${dayGoal.over} kcal over target</span>`;
+      } else if (dayGoal.state === 'reached') {
+        summaryHtml += `<span class="day-summary-diff">target reached</span>`;
+      } else {
+        summaryHtml += `<span class="day-summary-diff">${dayGoal.remaining} kcal left</span>`;
       }
     }
     const macroTotals = list.reduce((sum, e) => {
