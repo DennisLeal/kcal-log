@@ -7,7 +7,7 @@
     "APP_URL": "https://dennisleal.github.io/kcal-log/",
     "APP_ORIGIN": "https://dennisleal.github.io",
     "ALERT_EMAIL_TO": "lealdennis110@gmail.com",
-    "PAYMONGO_MODE": "test"
+    "PAYMONGO_MODE": "live"
   },
   "d1_databases": [
     {
