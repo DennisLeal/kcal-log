@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'kcal-log-';
-const CACHE_NAME = 'kcal-log-v14';
+const CACHE_NAME = 'kcal-log-v15';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
