@@ -2619,7 +2619,9 @@ function setCheckoutStatus(message){
 }
 function unlockLifetimeAccess(){
  const banner=document.getElementById('trialText');
- if(banner) banner.textContent='Lifetime access';
+ if(banner) banner.textContent='Lifetime access ✓ Thank you!';
+ const buy=document.getElementById('buyFromTrialBtn');
+ if(buy) buy.hidden=true;
  document.getElementById('trialLock').style.display='none';
 }
 function openPurchasePanel(forceExpired=false){
