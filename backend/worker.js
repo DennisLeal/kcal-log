@@ -483,9 +483,9 @@ async function handleAccessStatus(request, env) {
 const FOOD_PHOTO_MAX_BASE64 = 1_400_000;
 const FOOD_PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const FOOD_PHOTO_DAY_MS = 24 * 60 * 60 * 1000;
-const FOOD_TRIAL_WINDOW_MS = 3 * FOOD_PHOTO_DAY_MS;
-const FOOD_TRIAL_MAX_PHOTOS = 5;
-const FOOD_TRIAL_IP_MAX_PHOTOS = 15;
+const FOOD_TRIAL_WINDOW_MS = FOOD_PHOTO_DAY_MS;
+const FOOD_TRIAL_MAX_PHOTOS = 10;
+const FOOD_TRIAL_IP_MAX_PHOTOS = 30;
 const MACRO_FIELDS = ['kcal', 'protein', 'carbs', 'fat'];
 
 const FOOD_PROMPT = `You are a nutrition analyst for a Filipino calorie-tracking app.

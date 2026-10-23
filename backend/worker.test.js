@@ -338,13 +338,13 @@ test('trial users get a limited number of photos via a trial id', async () => {
   assert.equal(noId.status, 403);
   const badId = await worker.fetch(trialRequest('short'), foodEnv({ paid: false }));
   assert.equal(badId.status, 403);
-  const used = await worker.fetch(trialRequest('trial-id-1234567890abcd'), foodEnv({ paid: false, count: 6 }));
+  const used = await worker.fetch(trialRequest('trial-id-1234567890abcd'), foodEnv({ paid: false,   count: 11 }));
   assert.equal(used.status, 403);
   assert.equal((await used.json()).code, 'trial-limit');
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response('{}', { status: 429 });
   try {
-    const allowed = await worker.fetch(trialRequest('trial-id-1234567890abcd'), foodEnv({ paid: false, count: 5 }));
+      const allowed = await worker.fetch(trialRequest('trial-id-1234567890abcd'), foodEnv({ paid: false, count: 10 }));
     assert.equal(allowed.status, 503);
   } finally {
     globalThis.fetch = originalFetch;
