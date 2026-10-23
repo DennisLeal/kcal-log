@@ -270,7 +270,7 @@ async function createCheckout(order, env) {
             currency: order.currency,
             quantity: 1
           }],
-          payment_method_types: ['gcash', 'qrph'],
+          payment_method_types: ['qrph'],
           billing: { email: order.email },
           success_url: `${env.APP_URL}?purchase=complete&order=${encodeURIComponent(order.id)}`,
           cancel_url: `${env.APP_URL}?purchase=cancelled`,

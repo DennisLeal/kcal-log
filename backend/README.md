@@ -87,7 +87,7 @@ The deployment output includes the Worker HTTPS origin. Set `ACCESS_API_BASE_URL
 
 ## Payment and recovery behavior
 
-- The server fixes the price at PHP 79.00 and requests GCash and QR Ph payment methods. It never accepts a price from the browser.
+- The server fixes the price at PHP 79.00 and requests only the QR Ph payment method. It never accepts a price from the browser.
 - Each checkout receives a random order reference. The browser's success redirect does not unlock the app.
 - Webhooks are checked against the raw request body with PayMongo's HMAC-SHA256 signature. The Worker validates mode, timestamp, paid status, order reference, checkout session, amount, and currency, then deduplicates events.
 - A purchase email is sent to the address entered before checkout. Recovery codes contain 24 random hexadecimal characters, expire after 10 minutes, and can be redeemed once. Only hashes of codes and access tokens are stored.
