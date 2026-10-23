@@ -2754,6 +2754,7 @@ function configureLifetimeCheckout(){
   });
   const query=new URLSearchParams(window.location.search);
   if(query.get('purchase')==='complete'){
+    openPurchasePanel(false);
     const savedEmail=sessionStorage.getItem('kcal-lifetime-purchase-email');
     if(savedEmail) emailInput.value=savedEmail;
     const orderId=query.get('order');
