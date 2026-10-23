@@ -1046,6 +1046,16 @@ a:focus-visible {
 .photo-lock{border-style:dashed}
 .photo-lock ul{margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.6}
 .entry-macros{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.entry-edit{min-width:40px;min-height:40px;border-radius:10px;background:none;border:none;color:var(--ink-soft);font-size:18px;padding:0;cursor:pointer;line-height:1}
+.entry-edit:active{background:var(--paper-dim)}
+.entry-editing{display:block}
+.edit-form{display:flex;flex-direction:column;gap:8px;width:100%}
+.edit-form label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--ink-soft)}
+.edit-form input{font:inherit;font-size:16px;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);width:100%;box-sizing:border-box}
+.edit-hint{font-size:11px;color:var(--ink-soft);margin:0}
+.edit-actions{display:flex;gap:8px}
+.edit-actions button{flex:1;min-height:44px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--paper-dim);color:var(--ink)}
+.edit-actions .edit-save{background:var(--ink);color:#fff;border-color:var(--ink)}
 </style>
 </head>
 <body>
@@ -1618,6 +1628,70 @@ a:focus-visible {
     }, 700);
   }
   /* =======================================================
+     EDIT ENTRY
+     ======================================================= */
+  let editingId = null;
+  const MACRO_KEYS = ['protein', 'carbs', 'fat'];
+  function buildEditForm(row, e) {
+    const hasGrams = Number(e.grams) > 0;
+    row.innerHTML = `
+      <form class="edit-form" novalidate>
+        <label>Food / item<input type="text" name="food" maxlength="120"></label>
+        ${hasGrams ? '<label>Weight (grams)<input type="number" name="grams" inputmode="decimal" min="1" step="any"></label>' : ''}
+        <label>Kcal<input type="number" name="kcal" inputmode="numeric" min="0" step="1"></label>
+        <label>Notes<input type="text" name="notes" maxlength="200"></label>
+        ${hasGrams ? '<p class="edit-hint">Changing the weight rescales calories and macros in proportion. You can still adjust kcal afterwards.</p>' : ''}
+        <div class="edit-actions">
+          <button type="submit" class="edit-save">Save</button>
+          <button type="button" class="edit-cancel">Cancel</button>
+        </div>
+      </form>`;
+    const form = row.querySelector('form');
+    form.food.value = e.food || '';
+    form.kcal.value = Number(e.kcal) || 0;
+    form.notes.value = e.notes || '';
+    if (hasGrams) {
+      form.grams.value = e.grams;
+      form.grams.addEventListener('input', () => {
+        const g = Number(form.grams.value);
+        if (Number.isFinite(g) && g > 0) form.kcal.value = Math.round((Number(e.kcal) || 0) * g / Number(e.grams));
+      });
+    }
+    form.querySelector('.edit-cancel').addEventListener('click', () => { editingId = null; render(); });
+    form.addEventListener('submit', ev => {
+      ev.preventDefault();
+      const food = form.food.value.trim();
+      const kcalRaw = form.kcal.value.trim();
+      const kcal = Number(kcalRaw);
+      if (!food) { flash(form.food); return; }
+      if (kcalRaw === '' || !Number.isFinite(kcal) || kcal < 0) { flash(form.kcal); return; }
+      const list = allEntries[selectedDate] || [];
+      const target = list.find(x => x.id === e.id);
+      if (!target) { editingId = null; render(); return; }
+      if (hasGrams) {
+        const g = Number(form.grams.value);
+        if (!Number.isFinite(g) || g <= 0) { flash(form.grams); return; }
+        if (g !== Number(target.grams)) {
+          const ratio = g / Number(target.grams);
+          MACRO_KEYS.forEach(k => {
+            if (Number.isFinite(Number(target[k])) && target[k] !== undefined && target[k] !== null) {
+              target[k] = Math.round(Number(target[k]) * ratio * 10) / 10;
+            }
+          });
+          target.grams = g;
+        }
+      }
+      target.food = food;
+      target.kcal = Math.round(kcal);
+      target.notes = form.notes.value.trim();
+      editingId = null;
+      saveEntries();
+      render();
+      if (summaryView.style.display !== 'none') renderSummary();
+    });
+    form.food.focus();
+  }
+  /* =======================================================
      DELETE ENTRY
      ======================================================= */
   async function deleteEntry(dateKey, id) {
@@ -2076,9 +2150,15 @@ a:focus-visible {
           <div class="entry-running">running total: ${running} kcal</div>
         </div>
         <div class="entry-kcal">${Number(e.kcal) || 0}</div>
+        <button class="entry-edit" aria-label="Edit entry" title="Edit entry">✎</button>
         <button class="entry-del" data-id="${escapeHtml(e.id)}" aria-label="Delete entry" title="Delete entry">×</button>
       `;
       row.querySelector('.entry-del').addEventListener('click', () => deleteEntry(selectedDate, e.id));
+      row.querySelector('.entry-edit').addEventListener('click', () => { editingId = e.id; render(); });
+      if (e.id === editingId) {
+        row.className = 'entry entry-editing';
+        buildEditForm(row, e);
+      }
       container.appendChild(row);
     });
     const summary = document.createElement('div');
